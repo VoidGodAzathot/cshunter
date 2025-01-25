@@ -1,0 +1,19 @@
+[package]
+name = "cshunter"
+version = "0.0.0"
+description = "Сheating software detection applications."
+authors = ["mentola", "vierimuru"]
+edition = "2021"
+
+[lib]
+name = "cshunter_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0.5", features = [] }
+
+[dependencies]
+tauri = { version = "2.2.4", features = [] }
+tauri-plugin-opener = "2.2.5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
