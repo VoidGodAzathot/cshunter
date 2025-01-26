@@ -122,8 +122,8 @@ impl UsnJournal {
 
         let mut size: u32 = 0;
 
-        unsafe {
-            match DeviceIoControl(
+        match unsafe {
+            DeviceIoControl(
                 self.volume_handle.unwrap(),
                 FSCTL_READ_USN_JOURNAL,
                 Some(addr_of_mut!(data) as *mut c_void),
@@ -132,15 +132,15 @@ impl UsnJournal {
                 buffer.size as u32,
                 Some(&mut size),
                 None,
-            ) {
-                Ok(_) => {
-                    return Some(size as usize);
-                }
+            )
+        } {
+            Ok(_) => {
+                return Some(size as usize);
+            }
 
-                Err(e) => {
-                    println!("{e:?}");
-                    return None;
-                }
+            Err(e) => {
+                println!("{e:?}");
+                return None;
             }
         }
     }
@@ -151,7 +151,7 @@ impl UsnJournal {
             StartFileReferenceNumber: 0,
             LowUsn: 0,
             HighUsn: 0,
-            MaxMajorVersion: 4,
+            MaxMajorVersion: 3,
             MinMajorVersion: 2,
         };
 
@@ -159,8 +159,8 @@ impl UsnJournal {
         let mut buf = self.align_buffer(u32::MAX as usize);
         let mut size = 0;
 
-        unsafe {
-            match DeviceIoControl(
+        match unsafe {
+            DeviceIoControl(
                 self.volume_handle.unwrap(),
                 FSCTL_ENUM_USN_DATA,
                 Some(addr_of_mut!(enum_data) as *mut c_void),
@@ -169,78 +169,25 @@ impl UsnJournal {
                 buf.size as u32,
                 Some(&mut size),
                 None,
-            ) {
-                Ok(_) => {
-                    let mut offset: usize = 8;
+            )
+        } {
+            Ok(_) => {
+                let mut offset: usize = 8;
 
-                    while offset < size as usize {
-                        // не допускаем выхода за размеры журнала
-                        let (len, record) = {
-                            let rec = read_unaligned(
-                                buf.source[offset..].as_ptr() as *const USN_RECORD_UNION
-                            );
+                while offset < size as usize {
+                    // не допускаем выхода за размеры журнала
+                    let (len, record) = unsafe { self.read_usn_union(&buf, offset, size as usize) };
 
-                            let len: usize = rec.Header.RecordLength as usize;
-
-                            if len == 0 || offset + len > size as usize {
-                                break;
-                            }
-
-                            // читаем имя файла из буфера
-                            let f_n_offset = if rec.Header.MajorVersion == 2 {
-                                offset_of!(USN_RECORD_V2, FileName)
-                            } else {
-                                offset_of!(USN_RECORD_V3, FileName)
-                            };
-
-                            let f_n = String::from_utf8_lossy(from_raw_parts(
-                                buf.source[offset + f_n_offset as usize..].as_ptr(),
-                                if rec.Header.MajorVersion == 2 {
-                                    rec.V2.FileNameLength as usize
-                                } else {
-                                    rec.V3.FileNameLength as usize
-                                },
-                            ))
-                            .to_string();
-
-                            let record: Option<UsnRecord> = match rec.Header.MajorVersion {
-                                2 => Some(UsnRecord {
-                                    version: Version::_2,
-                                    file_id: FileIdentifier::_2(rec.V2.FileReferenceNumber),
-                                    parent_file_id: FileIdentifier::_2(
-                                        rec.V2.ParentFileReferenceNumber,
-                                    ),
-                                    file_name: f_n.replace("\0", ""),
-                                    reason: rec.V2.Reason,
-                                    timestamp: rec.V2.TimeStamp,
-                                }),
-                                3 => Some(UsnRecord {
-                                    version: Version::_3,
-                                    file_id: FileIdentifier::_3(rec.V3.FileReferenceNumber),
-                                    parent_file_id: FileIdentifier::_3(
-                                        rec.V3.ParentFileReferenceNumber,
-                                    ),
-                                    file_name: f_n.replace("\0", ""),
-                                    reason: rec.V3.Reason,
-                                    timestamp: rec.V3.TimeStamp,
-                                }),
-                                _ => None,
-                            };
-
-                            (len, record)
-                        };
-
-                        if record.is_some() {
-                            files.push(record.unwrap());
-                        }
-
-                        offset += len;
+                    if record.is_some() {
+                        files.push(record.unwrap());
                     }
-                }
 
-                Err(e) => println!("{e:?}"),
+                    offset += len;
+                }
             }
-        };
+
+            Err(e) => println!("{e:?}"),
+        }
 
         let files = files.iter().map(|record| {
             FileRecord::new(
@@ -273,62 +220,7 @@ impl UsnJournal {
 
             while offset < data_size {
                 // не допускаем выхода за размеры журнала
-                let (len, record) = {
-                    unsafe {
-                        let rec = read_unaligned(
-                            buf.source[offset..].as_ptr() as *const USN_RECORD_UNION
-                        );
-
-                        let len: usize = rec.Header.RecordLength as usize;
-
-                        if len == 0 || offset + len > data_size {
-                            break;
-                        }
-
-                        // читаем имя файла из буфера
-                        let f_n_offset = if rec.Header.MajorVersion == 2 {
-                            offset_of!(USN_RECORD_V2, FileName)
-                        } else {
-                            offset_of!(USN_RECORD_V3, FileName)
-                        };
-
-                        let f_n = String::from_utf8_lossy(from_raw_parts(
-                            buf.source[offset + f_n_offset as usize..].as_ptr(),
-                            if rec.Header.MajorVersion == 2 {
-                                rec.V2.FileNameLength as usize
-                            } else {
-                                rec.V3.FileNameLength as usize
-                            },
-                        ))
-                        .to_string();
-
-                        let record: Option<UsnRecord> = match rec.Header.MajorVersion {
-                            2 => Some(UsnRecord {
-                                version: Version::_2,
-                                file_id: FileIdentifier::_2(rec.V2.FileReferenceNumber),
-                                parent_file_id: FileIdentifier::_2(
-                                    rec.V2.ParentFileReferenceNumber,
-                                ),
-                                file_name: f_n.replace("\0", ""),
-                                reason: rec.V2.Reason,
-                                timestamp: rec.V2.TimeStamp,
-                            }),
-                            3 => Some(UsnRecord {
-                                version: Version::_3,
-                                file_id: FileIdentifier::_3(rec.V3.FileReferenceNumber),
-                                parent_file_id: FileIdentifier::_3(
-                                    rec.V3.ParentFileReferenceNumber,
-                                ),
-                                file_name: f_n.replace("\0", ""),
-                                reason: rec.V3.Reason,
-                                timestamp: rec.V3.TimeStamp,
-                            }),
-                            _ => None,
-                        };
-
-                        (len, record)
-                    }
-                };
+                let (len, record) = unsafe { self.read_usn_union(&buf, offset, data_size) };
 
                 if record.is_some() {
                     response.push(record.unwrap());
@@ -349,5 +241,60 @@ impl UsnJournal {
         });
 
         Vec::from_iter(unique_data)
+    }
+
+    unsafe fn read_usn_union(
+        &self,
+        buf: &Buffer,
+        offset: usize,
+        size: usize,
+    ) -> (usize, Option<UsnRecord>) {
+        let rec = read_unaligned(buf.source[offset..].as_ptr() as *const USN_RECORD_UNION);
+
+        let len: usize = rec.Header.RecordLength as usize;
+
+        if len == 0 || offset + len > size {
+            return (0, None);
+        }
+
+        // читаем имя файла из буфера
+        let f_n_offset = if rec.Header.MajorVersion == 2 {
+            offset_of!(USN_RECORD_V2, FileName)
+        } else {
+            offset_of!(USN_RECORD_V3, FileName)
+        };
+
+        let f_n = String::from_utf8_lossy(from_raw_parts(
+            buf.source[offset + f_n_offset as usize..].as_ptr(),
+            if rec.Header.MajorVersion == 2 {
+                rec.V2.FileNameLength as usize
+            } else {
+                rec.V3.FileNameLength as usize
+            },
+        ))
+        .to_string();
+
+        (
+            len,
+            match rec.Header.MajorVersion {
+                2 => Some(UsnRecord {
+                    version: Version::_2,
+                    file_id: FileIdentifier::_2(rec.V2.FileReferenceNumber),
+                    parent_file_id: FileIdentifier::_2(rec.V2.ParentFileReferenceNumber),
+                    file_name: f_n.replace("\0", ""),
+                    reason: rec.V2.Reason,
+                    timestamp: rec.V2.TimeStamp,
+                }),
+                3 => Some(UsnRecord {
+                    version: Version::_3,
+                    file_id: FileIdentifier::_3(rec.V3.FileReferenceNumber),
+                    parent_file_id: FileIdentifier::_3(rec.V3.ParentFileReferenceNumber),
+                    file_name: f_n.replace("\0", ""),
+                    reason: rec.V3.Reason,
+                    timestamp: rec.V3.TimeStamp,
+                }),
+                _ => None,
+            },
+        )
     }
 }

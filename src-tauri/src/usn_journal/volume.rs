@@ -1,5 +1,6 @@
 use std::ptr::null_mut;
 
+use serde::{Deserialize, Serialize};
 use windows::Win32::{
     Foundation::{BOOL, HANDLE, MAX_PATH},
     Storage::FileSystem::{
@@ -9,13 +10,13 @@ use windows::Win32::{
 
 use crate::utils::string_to_pcwstr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Flag {
     SYSTEM,
     NTFS,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Volume {
     pub path: String,
     pub free_space: u64,

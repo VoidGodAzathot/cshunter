@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod tests {
+    use windows::Win32::System::Ioctl::USN_REASON_FILE_CREATE;
+
     use crate::usn_journal::{usn_journal::UsnJournal, volume::get_all_volumes};
 
     #[test]
@@ -21,7 +23,7 @@ mod tests {
             let mut journal = UsnJournal::new(volume);
 
             if journal.init() {
-                let response = journal.read_all();
+                let response = journal.read(USN_REASON_FILE_CREATE);
                 println!("{}", response.len());
                 drop(journal);
             }
