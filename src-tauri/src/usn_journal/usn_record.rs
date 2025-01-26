@@ -171,7 +171,11 @@ impl FileRecord {
                     }
                 }
 
-                Err(e) => println!("{e:?}"),
+                Err(e) => {
+                    if cfg!(dev) {
+                        println!("{e:?}")
+                    }
+                },
             }
         }
 

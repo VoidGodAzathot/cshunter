@@ -53,7 +53,9 @@ impl Volume {
             );
 
             if result.is_err() {
-                println!("{}", result.err().unwrap());
+                if cfg!(dev) { 
+                    println!("{}", result.err().unwrap());
+                }
             }
         };
 
@@ -77,7 +79,9 @@ impl Volume {
                     Some(&mut buf));
 
                 if result.is_err() {
-                    println!("{}", result.err().unwrap());
+                    if cfg!(dev) { 
+                        println!("{}", result.err().unwrap());
+                    }
                 } else {
                     let fs = String::from_utf16_lossy(&buf);
                     let fs = fs.trim_end_matches("\0");
@@ -124,7 +128,10 @@ impl Volume {
             }
 
             Err(e) => {
-                println!("{e:?}");
+                if cfg!(dev) {
+                    println!("{e:?}")
+                }
+
                 return None;
             }
         }
