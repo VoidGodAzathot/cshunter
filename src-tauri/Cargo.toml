@@ -17,3 +17,5 @@ tauri = { version = "2.2.4", features = [] }
 tauri-plugin-opener = "2.2.5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+windows = { version = "0.59.0", features = ["Win32_Security", "Win32_System_SystemInformation", "Win32_System_Threading", "Win32_Storage_FileSystem", "Win32_System_IO", "Win32_System_Ioctl", "Wdk_Storage_FileSystem"] }
