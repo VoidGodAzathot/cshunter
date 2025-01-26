@@ -1,19 +1,25 @@
 use std::{
     collections::HashSet,
     ffi::c_void,
+    i64,
     mem::{offset_of, zeroed},
     ptr::{addr_of_mut, null_mut, read_unaligned},
     slice::from_raw_parts,
+    usize,
 };
 
-use windows::Win32::{
-    Foundation::{CloseHandle, HANDLE},
-    System::{
-        Ioctl::{
-            FSCTL_QUERY_USN_JOURNAL, FSCTL_READ_USN_JOURNAL, READ_USN_JOURNAL_DATA_V1,
-            USN_JOURNAL_DATA_V2, USN_RECORD_UNION, USN_RECORD_V2, USN_RECORD_V3,
+use windows::{
+    Wdk::Storage::FileSystem::MFT_ENUM_DATA,
+    Win32::{
+        Foundation::{CloseHandle, HANDLE},
+        System::{
+            Ioctl::{
+                FSCTL_ENUM_USN_DATA, FSCTL_QUERY_USN_JOURNAL, FSCTL_READ_USN_JOURNAL,
+                READ_USN_JOURNAL_DATA_V1, USN_JOURNAL_DATA_V2, USN_RECORD_UNION, USN_RECORD_V2,
+                USN_RECORD_V3,
+            },
+            IO::DeviceIoControl,
         },
-        IO::DeviceIoControl,
     },
 };
 
@@ -63,13 +69,17 @@ impl UsnJournal {
     pub fn new(volume: Volume) -> Self {
         Self {
             volume: volume.clone(),
-            volume_handle: unsafe { volume.clone().get_handle() },
+            volume_handle: Some(HANDLE(null_mut())),
             journal_data: unsafe { zeroed() }, // временно заполняем до вызова init'a
             journal_data_size: 0,
         }
     }
 
     pub fn init(&mut self) -> bool {
+        unsafe {
+            self.volume_handle = self.volume.clone().get_handle();
+        };
+
         if self.volume_handle.is_none() || self.volume_handle.unwrap().is_invalid() {
             return false;
         }
@@ -135,10 +145,118 @@ impl UsnJournal {
         }
     }
 
+    // получение всех записей, которые когда либо проходили через журнал посредством mft запроса без исключений
+    pub fn read_all(&mut self) -> Vec<FileRecord> {
+        let mut enum_data = MFT_ENUM_DATA {
+            StartFileReferenceNumber: 0,
+            LowUsn: 0,
+            HighUsn: 0,
+            MaxMajorVersion: 4,
+            MinMajorVersion: 2,
+        };
+
+        let mut files: Vec<UsnRecord> = Vec::new();
+        let mut buf = self.align_buffer(u32::MAX as usize);
+        let mut size = 0;
+
+        unsafe {
+            match DeviceIoControl(
+                self.volume_handle.unwrap(),
+                FSCTL_ENUM_USN_DATA,
+                Some(addr_of_mut!(enum_data) as *mut c_void),
+                size_of::<MFT_ENUM_DATA>() as u32,
+                Some(buf.source.as_mut_ptr() as *mut c_void),
+                buf.size as u32,
+                Some(&mut size),
+                None,
+            ) {
+                Ok(_) => {
+                    let mut offset: usize = 8;
+
+                    while offset < size as usize {
+                        // не допускаем выхода за размеры журнала
+                        let (len, record) = {
+                            let rec = read_unaligned(
+                                buf.source[offset..].as_ptr() as *const USN_RECORD_UNION
+                            );
+
+                            let len: usize = rec.Header.RecordLength as usize;
+
+                            if len == 0 || offset + len > size as usize {
+                                break;
+                            }
+
+                            // читаем имя файла из буфера
+                            let f_n_offset = if rec.Header.MajorVersion == 2 {
+                                offset_of!(USN_RECORD_V2, FileName)
+                            } else {
+                                offset_of!(USN_RECORD_V3, FileName)
+                            };
+
+                            let f_n = String::from_utf8_lossy(from_raw_parts(
+                                buf.source[offset + f_n_offset as usize..].as_ptr(),
+                                if rec.Header.MajorVersion == 2 {
+                                    rec.V2.FileNameLength as usize
+                                } else {
+                                    rec.V3.FileNameLength as usize
+                                },
+                            ))
+                            .to_string();
+
+                            let record: Option<UsnRecord> = match rec.Header.MajorVersion {
+                                2 => Some(UsnRecord {
+                                    version: Version::_2,
+                                    file_id: FileIdentifier::_2(rec.V2.FileReferenceNumber),
+                                    parent_file_id: FileIdentifier::_2(
+                                        rec.V2.ParentFileReferenceNumber,
+                                    ),
+                                    file_name: f_n.replace("\0", ""),
+                                    reason: rec.V2.Reason,
+                                    timestamp: rec.V2.TimeStamp,
+                                }),
+                                3 => Some(UsnRecord {
+                                    version: Version::_3,
+                                    file_id: FileIdentifier::_3(rec.V3.FileReferenceNumber),
+                                    parent_file_id: FileIdentifier::_3(
+                                        rec.V3.ParentFileReferenceNumber,
+                                    ),
+                                    file_name: f_n.replace("\0", ""),
+                                    reason: rec.V3.Reason,
+                                    timestamp: rec.V3.TimeStamp,
+                                }),
+                                _ => None,
+                            };
+
+                            (len, record)
+                        };
+
+                        if record.is_some() {
+                            files.push(record.unwrap());
+                        }
+
+                        offset += len;
+                    }
+                }
+
+                Err(e) => println!("{e:?}"),
+            }
+        };
+
+        let files = files.iter().map(|record| {
+            FileRecord::new(
+                record.clone(),
+                self.volume.clone(),
+                self.volume_handle.clone().unwrap(),
+            )
+        });
+
+        Vec::from_iter(files)
+    }
+
     pub fn read(&mut self, reason_mask: u32) -> Vec<FileRecord> {
         let mut response: Vec<UsnRecord> = vec![];
 
-        let mut buf = self.align_buffer(self.journal_data.MaximumSize as usize);
+        let mut buf = self.align_buffer(u32::MAX as usize);
         let data_size = self.fill_buffer(&mut buf, self.journal_data.NextUsn, reason_mask);
 
         if data_size.is_some() {
@@ -157,7 +275,9 @@ impl UsnJournal {
                 // не допускаем выхода за размеры журнала
                 let (len, record) = {
                     unsafe {
-                        let rec = read_unaligned(buf.source[offset..].as_ptr() as *const USN_RECORD_UNION);
+                        let rec = read_unaligned(
+                            buf.source[offset..].as_ptr() as *const USN_RECORD_UNION
+                        );
 
                         let len: usize = rec.Header.RecordLength as usize;
 
@@ -189,7 +309,7 @@ impl UsnJournal {
                                 parent_file_id: FileIdentifier::_2(
                                     rec.V2.ParentFileReferenceNumber,
                                 ),
-                                file_name: f_n,
+                                file_name: f_n.replace("\0", ""),
                                 reason: rec.V2.Reason,
                                 timestamp: rec.V2.TimeStamp,
                             }),
@@ -199,7 +319,7 @@ impl UsnJournal {
                                 parent_file_id: FileIdentifier::_3(
                                     rec.V3.ParentFileReferenceNumber,
                                 ),
-                                file_name: f_n,
+                                file_name: f_n.replace("\0", ""),
                                 reason: rec.V3.Reason,
                                 timestamp: rec.V3.TimeStamp,
                             }),

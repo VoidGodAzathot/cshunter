@@ -3,7 +3,7 @@ use std::ptr::null_mut;
 use windows::Win32::{
     Foundation::{BOOL, HANDLE, MAX_PATH},
     Storage::FileSystem::{
-        CreateFileW, GetDiskFreeSpaceExW, GetLogicalDriveStringsW, GetVolumeInformationW, FILE_FLAG_OVERLAPPED, FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING
+        CreateFileW, GetDiskFreeSpaceExW, GetLogicalDriveStringsW, GetVolumeInformationW, FILE_FLAG_BACKUP_SEMANTICS, FILE_GENERIC_READ, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING
     }, System::SystemInformation::GetWindowsDirectoryW,
 };
 
@@ -111,11 +111,11 @@ impl Volume {
     pub unsafe fn get_handle(&self) -> Option<HANDLE> {
         match CreateFileW(
             string_to_pcwstr(format!("\\\\.\\{}:", self.path.replace(":\\", ""))),
-            (FILE_GENERIC_READ | FILE_GENERIC_WRITE).0,
+            FILE_GENERIC_READ.0,
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
             None,
             OPEN_EXISTING,
-            FILE_FLAG_OVERLAPPED,
+            FILE_FLAG_BACKUP_SEMANTICS,
             None,
         ) {
             Ok(handle) => {
@@ -123,7 +123,7 @@ impl Volume {
             }
 
             Err(e) => {
-                println!("{}", e);
+                println!("{e:?}");
                 return None;
             }
         }
