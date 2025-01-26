@@ -1,9 +1,11 @@
 use device_id::{get_device_id, get_ip_addr};
 use usn_journal::{get_all_volumes, get_usn_journal_records};
+use utils::get_parallel_files;
 
 pub mod usn_journal;
 pub mod utils;
 pub mod device_id;
+pub mod tests;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -13,7 +15,8 @@ pub fn run() {
             get_usn_journal_records,
             get_all_volumes,
             get_device_id,
-            get_ip_addr
+            get_ip_addr,
+            get_parallel_files
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
