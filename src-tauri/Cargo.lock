@@ -702,6 +702,7 @@ dependencies = [
  "jwalk",
  "nvml-wrapper",
  "rayon",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",
@@ -710,6 +711,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-opener",
  "windows 0.59.0",
+ "windows-registry 0.4.0",
 ]
 
 [[package]]
@@ -3345,7 +3347,7 @@ dependencies = [
  "wasm-streams",
  "web-sys",
  "webpki-roots",
- "windows-registry",
+ "windows-registry 0.2.0",
 ]
 
 [[package]]
@@ -5141,6 +5143,17 @@ dependencies = [
  "windows-result 0.2.0",
  "windows-strings 0.1.0",
  "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "windows-registry"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4286ad90ddb45071efd1a66dfa43eb02dd0dfbae1545ad6cc3c51cf34d7e8ba3"
+dependencies = [
+ "windows-result 0.3.0",
+ "windows-strings 0.3.0",
+ "windows-targets 0.53.0",
 ]
 
 [[package]]
