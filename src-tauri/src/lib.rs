@@ -1,3 +1,4 @@
+use analyzer::{create_analyzer_context, create_analyzer_context_from_url, generate_context_from_folder, run_analyzer};
 use browser::{
     get_browser_cache_data, get_browser_download_data, get_browser_visit_data,
     get_supported_browsers,
@@ -7,12 +8,14 @@ use steam::{get_steam_accounts_history, is_vac_present};
 use usn_journal::{get_all_volumes, get_usn_journal_records};
 use utils::get_parallel_files;
 
+pub mod analyzer;
 pub mod browser;
 pub mod device_id;
 pub mod steam;
 pub mod tests;
 pub mod usn_journal;
 pub mod utils;
+pub mod emit;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -29,7 +32,11 @@ pub fn run() {
             get_supported_browsers,
             get_browser_cache_data,
             get_browser_download_data,
-            get_browser_visit_data
+            get_browser_visit_data,
+            create_analyzer_context,
+            create_analyzer_context_from_url,
+            generate_context_from_folder,
+            run_analyzer
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
