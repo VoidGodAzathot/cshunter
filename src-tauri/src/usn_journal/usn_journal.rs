@@ -159,7 +159,7 @@ impl UsnJournal {
         };
 
         let mut files: Vec<UsnRecord> = Vec::new();
-        let mut buf = self.align_buffer(u32::MAX as usize);
+        let mut buf = self.align_buffer(self.journal_data.MaximumSize as usize);
         let mut size = 0;
 
         match unsafe {
@@ -210,7 +210,7 @@ impl UsnJournal {
     pub fn read(&mut self, reason_mask: u32) -> Vec<FileRecord> {
         let mut response: Vec<UsnRecord> = vec![];
 
-        let mut buf = self.align_buffer(u32::MAX as usize);
+        let mut buf = self.align_buffer(self.journal_data.MaximumSize as usize);
         let data_size = self.fill_buffer(&mut buf, self.journal_data.NextUsn, reason_mask);
 
         if data_size.is_some() {

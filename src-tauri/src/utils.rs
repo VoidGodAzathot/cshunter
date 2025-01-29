@@ -1,3 +1,5 @@
+use std::{thread, time::Duration};
+
 use jwalk::WalkDir;
 use rand::{distr::Alphanumeric, Rng};
 use rayon::iter::{ParallelBridge, ParallelIterator};
@@ -35,18 +37,17 @@ pub fn get_parallel_files(start_path: String) -> Vec<String> {
 
 #[tauri::command]
 pub fn run_main_window_and_close_preload(app: AppHandle) {
-    let preload_window = app.get_webview_window("main");
-
-    if preload_window.is_none() {
-        return;
-    }
-
-    let cshunter_window = app.get_webview_window("cshunter");
-
-    if cshunter_window.is_none() {
-        return;
-    }
-
-    let _ = preload_window.unwrap().close();
-    let _ = cshunter_window.unwrap().show();
+    thread::spawn(move || {
+        let preload_window = app.get_webview_window("main");
+        if preload_window.is_none() {
+            return;
+        }
+        let cshunter_window = app.get_webview_window("cshunter");
+        if cshunter_window.is_none() {
+            return;
+        }
+        let _ = preload_window.unwrap().close();
+        thread::sleep(Duration::from_millis(1000));
+        let _ = cshunter_window.unwrap().show();
+    });
 }
