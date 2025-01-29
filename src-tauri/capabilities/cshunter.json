@@ -1,0 +1,17 @@
+{
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "identifier": "cshunter",
+    "description": "Capability for the main window",
+    "windows": ["cshunter"],
+    "permissions": [
+      "core:default",
+      "opener:default",
+      "core:window:default",
+      "core:window:allow-start-dragging",
+      "core:window:allow-close",
+      "core:window:allow-maximize",
+      "core:window:allow-unmaximize",
+      "core:window:allow-minimize"
+    ]
+  }
+  

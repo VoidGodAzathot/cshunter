@@ -6,7 +6,7 @@ use browser::{
 use device_id::{get_device_id, get_ip_addr};
 use steam::{get_steam_accounts_history, is_vac_present};
 use usn_journal::{get_all_volumes, get_usn_journal_records};
-use utils::get_parallel_files;
+use utils::{get_parallel_files, run_main_window_and_close_preload};
 
 pub mod analyzer;
 pub mod browser;
@@ -36,7 +36,8 @@ pub fn run() {
             create_analyzer_context,
             create_analyzer_context_from_url,
             generate_context_from_folder,
-            run_analyzer
+            run_analyzer,
+            run_main_window_and_close_preload
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
