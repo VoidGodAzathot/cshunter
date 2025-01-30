@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 
-use analyzer::{create_analyzer_context, create_analyzer_context_from_url, generate_context_from_folder, run_analyzer};
+use analyzer::{create_analyzer_context, create_analyzer_context_from_url, generate_context, run_analyzer};
 use browser::{
     get_browser_cache_data, get_browser_download_data, get_browser_visit_data,
     get_supported_browsers,
@@ -44,7 +44,7 @@ pub fn run() {
             get_browser_visit_data,
             create_analyzer_context,
             create_analyzer_context_from_url,
-            generate_context_from_folder,
+            generate_context,
             run_analyzer,
             run_main_window_and_close_preload,
             get_storage,

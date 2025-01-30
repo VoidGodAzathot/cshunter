@@ -4,7 +4,7 @@ import useStorage from "../../hooks/storage";
 import { Card, ProgressRoot, Text } from "@chakra-ui/react";
 import { ProgressBar, ProgressLabel } from "../../components/ui/progress";
 import { Task } from "../../utils/task";
-import { Browser, CacheDat, DownloadDat, FileRecord, SteamAccount, VisitDat, Volume } from "../../utils/types";
+import { AnalyzeContext, Browser, CacheDat, DownloadDat, FileRecord, SteamAccount, VisitDat, Volume } from "../../utils/types";
 import PreloadBoxes from "../../components/preload/preload-boxes";
 import { getVersion } from '@tauri-apps/api/app';
 
@@ -82,6 +82,16 @@ const tasks: Task[] = [
             await set<DownloadDat[]>("browsers_download_dat", download_dat);
             await set<CacheDat[]>("browsers_visit_dat", visit_dat);
             await set<CacheDat[]>("browsers_cache_dat", cache_dat);
+        }
+    },
+    {
+        name: "Снапшот файлов системы",
+        id: "snapshot_files_system",
+        worker: async () => {
+            const [set, get,] = useStorage();
+            const all_files = await get<string[]>("all_files");
+            const context: AnalyzeContext = await invoke("generate_context", { files: all_files });
+            await set<AnalyzeContext>("analyzer_context", context);
         }
     },
     {

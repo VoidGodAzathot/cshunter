@@ -19,8 +19,8 @@ pub fn create_analyzer_context(path: String) -> Option<AnalyzerContext> {
 }
 
 #[tauri::command]
-pub fn generate_context_from_folder(path: String) -> Option<AnalyzerContext> {
-    Analyzer::generate_context(path)
+pub fn generate_context(files: Vec<String>) -> Option<AnalyzerContext> {
+    Analyzer::generate_context(files)
 }
 
 #[tauri::command(async)]

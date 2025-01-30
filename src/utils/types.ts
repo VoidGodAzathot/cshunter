@@ -54,3 +54,14 @@ export type CacheDat = {
     browser: string,
     url: string
 }
+
+export type AnalyzeContext = {
+    items: ItemContext[]
+}
+
+export type ItemContext = {
+    name: string,
+    size: number,
+    crc32: number[],
+    tls: number
+}

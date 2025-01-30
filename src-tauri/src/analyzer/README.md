@@ -15,11 +15,10 @@ const context: unknown | null = await invoke("create_analyzer_context_from_url",
 ```
 
 ### Генерация контекста всех файлов из папки
-- **Функция:** `generate_context_from_folder`
+- **Функция:** `generate_context`
 - **Пример использования:**
 ```ts
-// создаст context.json в той же папке
-await invoke("generate_context_from_folder", { path: "start_path" });
+const context: unknown | null = await invoke("generate_context", { path: "start_path" });
 ```
 
 ### Запуск анализа

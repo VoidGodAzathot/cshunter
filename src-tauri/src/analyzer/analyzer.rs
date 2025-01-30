@@ -1,7 +1,7 @@
-use std::{ffi::OsStr, fs::File, path::Path};
+use std::{fmt::Debug, fs::File, path::Path};
 
 use pelite::{FileMap, PeFile};
-use rayon::iter::{ParallelBridge, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use tauri::{Emitter, Window};
 
@@ -35,12 +35,12 @@ impl Analyzer {
     }
 
     pub fn run_analyze(&self, start_path: String, emitter: Window) {
-        let id: u64 = rand::random_range(0..u64::MAX);
+        let id: u16 = rand::random_range(0..u16::MAX);
 
         let _ = emitter.emit(
             ANALYZER_EMIT_EVENT,
             Payload::<Empty> {
-                task_id: id,
+                task_id: id as u64,
                 _type: String::from("start"),
                 data: Empty {},
             },
@@ -49,7 +49,8 @@ impl Analyzer {
         let targets = get_parallel_files(start_path);
 
         targets.iter().par_bridge().for_each(|target| {
-            let file_context = Analyzer::create_file_context(String::new(), target.to_string());
+            let file_context =
+                Analyzer::create_file_context(String::new(), target.to_string(), false);
 
             if file_context.is_some() {
                 let file_context = file_context.unwrap();
@@ -72,7 +73,7 @@ impl Analyzer {
                     let _ = emitter.emit(
                         ANALYZER_EMIT_EVENT,
                         Payload::<Match> {
-                            task_id: id,
+                            task_id: id as u64,
                             _type: String::from("match"),
                             data: _match,
                         },
@@ -84,109 +85,97 @@ impl Analyzer {
         let _ = emitter.emit(
             ANALYZER_EMIT_EVENT,
             Payload::<Empty> {
-                task_id: id,
+                task_id: id as u64,
                 _type: String::from("stop"),
                 data: Empty {},
             },
         );
     }
 
-    pub fn create_file_context(name: String, path: String) -> Option<ItemContext> {
-        if !Path::new(&path).exists() || (!path.ends_with(".dll") && !path.ends_with(".exe")) {
-            return None;
-        }
-
-        match &File::open(&path) {
-            Ok(file) => {
-                let file_size = File::metadata(file).unwrap().len();
-
-                if file_size > 128 * 1024 * 1024 {
-                    return None;
-                }
-
-                match FileMap::open(&path) {
-                    Ok(file_map) => {
-                        let pe_crc = crc32fast::hash(file_map.as_ref());
-                        let mut tls = None;
-
-                        match PeFile::from_bytes(file_map.as_ref()) {
-                            Ok(file) => match file.tls() {
-                                Ok(_tls) => {
-                                    tls = Some(_tls);
-                                }
-
-                                Err(e) => {
-                                    if cfg!(dev) {
-                                        println!("{e:?}");
-                                    }
-                                }
-                            },
-
-                            Err(e) => {
-                                if cfg!(dev) {
-                                    println!("{e:?}");
-                                }
-                            }
-                        }
-
-                        if pe_crc != 0 {
-                            let crc32 = vec![pe_crc];
-                            let tls = if tls.is_some() {
-                                crc32fast::hash(tls.unwrap().raw_data().unwrap_or(&[0u8; 0]))
-                            } else {
-                                0
-                            };
-
-                            return Some(ItemContext {
-                                name: name,
-                                size: file_size,
-                                crc32: crc32,
-                                tls: tls,
-                            });
-                        }
-                    }
-
-                    Err(e) => {
-                        if cfg!(dev) {
-                            println!("{e:?}");
-                        }
-                    }
-                }
-            }
-
-            Err(e) => {
-                if cfg!(dev) {
-                    println!("{e:?}");
-                }
+    pub fn create_file_context(name: String, path: String, with_path: bool) -> Option<ItemContext> {
+        #[inline]
+        fn log_error(e: &impl Debug) {
+            if cfg!(dev) {
+                println!("{e:?}");
             }
         }
 
-        None
+        let file_map = || -> Option<FileMap> {
+            let file = File::open(&path).inspect_err(log_error).ok()?;
+            let file_size = file.metadata().inspect_err(log_error).ok()?.len();
+
+            if file_size > 128 * 1024 * 1024 {
+                return None;
+            }
+
+            FileMap::open(&path).inspect_err(log_error).ok()
+        }()?;
+
+        let pe_data = file_map.as_ref();
+        let pe_crc = crc32fast::hash(pe_data);
+
+        let tls_hash = PeFile::from_bytes(pe_data)
+            .ok()
+            .and_then(|pe| pe.tls().ok())
+            .and_then(|tls| tls.raw_data().ok())
+            .map_or(0, |data| crc32fast::hash(data));
+
+        Some(ItemContext {
+            name,
+            path: if with_path { path } else { String::new() },
+            size: file_map.as_ref().len() as u64,
+            crc32: vec![pe_crc],
+            tls: tls_hash,
+        })
     }
 
-    pub fn generate_context(start_path: String) -> Option<AnalyzerContext> {
-        if !Path::new(&start_path).exists() {
-            return None;
-        }
+    pub fn generate_context_from_folder(start_path: String) -> Option<AnalyzerContext> {
+        let items: Vec<_> = get_parallel_files(start_path)
+            .into_par_iter()
+            .filter_map(|file| {
+                let path = Path::new(&file);
 
-        let items: Vec<ItemContext> = get_parallel_files(start_path)
-            .iter()
-            .par_bridge()
-            .filter(|file| file.ends_with(".dll") || file.ends_with(".exe"))
-            .map(|file| {
-                Analyzer::create_file_context(
-                    Path::new(file)
-                        .file_name()
-                        .unwrap_or(&OsStr::new("undefined"))
-                        .to_string_lossy()
-                        .to_string(),
-                    file.to_string(),
-                )
+                match path.extension() {
+                    Some(ext) if ext == "dll" || ext == "exe" => {}
+                    _ => return None,
+                }
+
+                let file_name = path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|s| s.to_owned())
+                    .unwrap_or_else(|| "undefined".into());
+
+                Self::create_file_context(file_name, file, false)
             })
-            .filter(|item| item.is_some())
-            .map(|item| item.unwrap())
             .collect();
 
-        Some(AnalyzerContext { items: items })
+        (!items.is_empty()).then(|| AnalyzerContext { items })
+    }
+
+    pub fn generate_context(files: Vec<String>) -> Option<AnalyzerContext> {
+        use rayon::prelude::*;
+
+        let items: Vec<_> = files
+            .into_par_iter()
+            .filter_map(|file| {
+                let path = Path::new(&file);
+
+                match path.extension()?.to_str()? {
+                    "dll" | "exe" => Some(()),
+                    _ => None,
+                }?;
+
+                let file_name = path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|s| s.to_owned())
+                    .unwrap_or_else(|| "undefined".to_string());
+
+                Self::create_file_context(file_name, file, true)
+            })
+            .collect();
+
+        (!items.is_empty()).then(|| AnalyzerContext { items })
     }
 }

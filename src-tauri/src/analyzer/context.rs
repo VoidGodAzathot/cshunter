@@ -1,6 +1,9 @@
 use std::{fs::File, io::Read, path::Path};
 
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
+
+use super::analyzer::Match;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AnalyzerContext {
@@ -10,6 +13,7 @@ pub struct AnalyzerContext {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ItemContext {
     pub name: String,
+    pub path: String,
     pub size: u64,
     pub crc32: Vec<u32>,
     pub tls: u32,
@@ -82,4 +86,28 @@ pub async fn load_context_from_url(url: String) -> Option<AnalyzerContext> {
     }
 
     None
+}
+
+pub fn matches_on_context(target: AnalyzerContext, context: AnalyzerContext) -> Vec<Match> {
+    target
+        .items
+        .into_par_iter()
+        .map(|item| {
+            let fetch = context
+                .items
+                .iter()
+                .find(|item_| item_.to_owned().eq(&item));
+
+            if fetch.is_none() {
+                return None;
+            } else {
+                return Some(Match {
+                    items: vec![fetch.unwrap().clone()],
+                    path: item.path,
+                });
+            }
+        })
+        .filter(|item| item.is_some())
+        .map(|item| item.unwrap())
+        .collect()
 }
