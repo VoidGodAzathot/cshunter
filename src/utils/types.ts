@@ -65,3 +65,9 @@ export type ItemContext = {
     crc32: number[],
     tls: number
 }
+
+export type Page = {
+    source: JSX.Element,
+    icon: JSX.Element,
+    name: string
+}
