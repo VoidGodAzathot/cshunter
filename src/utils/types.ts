@@ -67,7 +67,7 @@ export type ItemContext = {
 }
 
 export type Page = {
-    source: JSX.Element,
+    source: () => JSX.Element,
     icon: JSX.Element,
     name: string
 }

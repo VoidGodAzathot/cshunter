@@ -7,7 +7,7 @@ const pages: Page[] = [
     { 
         name: "Главная", 
         icon: <Icon width="30px" height="30px" icon="material-symbols:home-rounded"></Icon>, 
-        source: <div>test</div>
+        source: () => <div>test</div>
     }
 ];
 
