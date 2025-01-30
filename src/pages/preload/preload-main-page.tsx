@@ -139,7 +139,7 @@ function PreloadMainPage() {
     }, [isLoaded]);
 
     return (
-        <div className="font-inter select-none w-[100vw] h-[100vh] flex justify-center items-center">
+        <div data-tauri-drag-region={true} className="font-inter w-[100vw] h-[100vh] select-none flex justify-center items-center">
             <Card.Root variant="subtle" width="320px">
                 <Card.Body>
                     <Card.Title spaceX={5} paddingBottom={5} className="items-center flex">

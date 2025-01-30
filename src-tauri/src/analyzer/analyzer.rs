@@ -1,6 +1,5 @@
-use std::{fmt::Debug, fs::File, path::Path};
+use std::{fmt::Debug, fs::File, io::Read, path::Path};
 
-use pelite::{FileMap, PeFile};
 use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use tauri::{Emitter, Window};
@@ -100,7 +99,7 @@ impl Analyzer {
             }
         }
 
-        let file_map = || -> Option<FileMap> {
+        let mut file_map = || -> Option<File> {
             let file = File::open(&path).inspect_err(log_error).ok()?;
             let file_size = file.metadata().inspect_err(log_error).ok()?.len();
 
@@ -108,24 +107,18 @@ impl Analyzer {
                 return None;
             }
 
-            FileMap::open(&path).inspect_err(log_error).ok()
+            Some(file)
         }()?;
 
-        let pe_data = file_map.as_ref();
-        let pe_crc = crc32fast::hash(pe_data);
-
-        let tls_hash = PeFile::from_bytes(pe_data)
-            .ok()
-            .and_then(|pe| pe.tls().ok())
-            .and_then(|tls| tls.raw_data().ok())
-            .map_or(0, |data| crc32fast::hash(data));
+        let mut buf: Vec<u8> = vec![];
+        let _ = file_map.read_to_end(&mut buf);
+        let pe_crc = crc32fast::hash(buf.as_slice());
 
         Some(ItemContext {
             name,
             path: if with_path { path } else { String::new() },
-            size: file_map.as_ref().len() as u64,
-            crc32: vec![pe_crc],
-            tls: tls_hash,
+            size: if file_map.metadata().is_ok() { file_map.metadata().unwrap().len() } else { 0 },
+            crc32: pe_crc
         })
     }
 

@@ -15,13 +15,12 @@ pub struct ItemContext {
     pub name: String,
     pub path: String,
     pub size: u64,
-    pub crc32: Vec<u32>,
-    pub tls: u32,
+    pub crc32: u32,
 }
 
 impl PartialEq for ItemContext {
     fn eq(&self, other: &Self) -> bool {
-        if !((self.size + 1) >= other.size) {
+        if !((self.size + (1 * 1024 * 1024)) >= other.size) {
             return false;
         }
 

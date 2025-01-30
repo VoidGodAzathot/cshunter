@@ -13,11 +13,9 @@
     "windows": [
       {
         "label": "main",
-        "title": "Counter Strike Hunter",
-        "width": 800,
-        "height": 600,
-        "minWidth": 800,
-        "minHeight": 600,
+        "title": "Preload Counter Strike Hunter",
+        "width": 600,
+        "height": 400,
         "resizable": false,
         "fullscreen": false,
         "transparent": true,
