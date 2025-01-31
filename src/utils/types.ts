@@ -34,6 +34,7 @@ export type Browser = {
     id: string,
     path: string,
     driver: Driver,
+    support: boolean
 }
 
 export type DownloadDat = {
