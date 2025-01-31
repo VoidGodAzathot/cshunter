@@ -117,8 +117,12 @@ impl Analyzer {
         Some(ItemContext {
             name,
             path: if with_path { path } else { String::new() },
-            size: if file_map.metadata().is_ok() { file_map.metadata().unwrap().len() } else { 0 },
-            crc32: pe_crc
+            size: if file_map.metadata().is_ok() {
+                file_map.metadata().unwrap().len()
+            } else {
+                0
+            },
+            crc32: pe_crc,
         })
     }
 

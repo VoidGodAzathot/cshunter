@@ -142,7 +142,7 @@ impl UsnJournal {
                 if cfg!(dev) {
                     println!("{e:?}")
                 }
-                
+
                 return None;
             }
         }
@@ -193,7 +193,7 @@ impl UsnJournal {
                 if cfg!(dev) {
                     println!("{e:?}")
                 }
-            },
+            }
         }
 
         let files = files.iter().map(|record| {

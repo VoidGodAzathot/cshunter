@@ -29,13 +29,13 @@ pub fn get_all_storage(app_handle: AppHandle) -> HashMap<String, serde_json::Val
 }
 
 pub struct Storage {
-    internal: HashMap<String, serde_json::Value>
+    internal: HashMap<String, serde_json::Value>,
 }
 
 impl Default for Storage {
     fn default() -> Self {
         Self {
-            internal: HashMap::new()
+            internal: HashMap::new(),
         }
     }
 }

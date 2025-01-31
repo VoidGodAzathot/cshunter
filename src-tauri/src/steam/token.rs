@@ -1,7 +1,7 @@
 #[derive(Clone, Debug, PartialEq)]
 pub struct Token {
     pub _type: TokenType,
-    pub value: Option<String>
+    pub value: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -12,5 +12,5 @@ pub enum TokenType {
     OpenQuote,
     CloseQuote,
     NameField,
-    ValueField
+    ValueField,
 }

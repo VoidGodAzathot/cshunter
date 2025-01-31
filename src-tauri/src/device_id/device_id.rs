@@ -7,25 +7,23 @@ use std::{
 
 use nvml_wrapper::{enums::device::DeviceArchitecture, Nvml};
 use sha2::{Digest, Sha256};
-use windows::
-    Win32::{
-        Foundation::CloseHandle,
-        Graphics::Gdi::{EnumDisplayDevicesW, DISPLAY_DEVICEW},
-        Storage::FileSystem::{
-            CreateFileW, FILE_FLAG_OVERLAPPED, FILE_GENERIC_READ, FILE_GENERIC_WRITE,
-            FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
+use windows::Win32::{
+    Foundation::CloseHandle,
+    Graphics::Gdi::{EnumDisplayDevicesW, DISPLAY_DEVICEW},
+    Storage::FileSystem::{
+        CreateFileW, FILE_FLAG_OVERLAPPED, FILE_GENERIC_READ, FILE_GENERIC_WRITE,
+        FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
+    },
+    System::{
+        Ioctl::{
+            PropertyStandardQuery, StorageDeviceProperty, IOCTL_STORAGE_QUERY_PROPERTY,
+            STORAGE_DESCRIPTOR_HEADER, STORAGE_DEVICE_DESCRIPTOR, STORAGE_PROPERTY_QUERY,
         },
-        System::{
-            Ioctl::{
-                PropertyStandardQuery, StorageDeviceProperty, IOCTL_STORAGE_QUERY_PROPERTY,
-                STORAGE_DESCRIPTOR_HEADER, STORAGE_DEVICE_DESCRIPTOR, STORAGE_PROPERTY_QUERY,
-            },
-            SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX},
-            IO::DeviceIoControl,
-        },
-        UI::WindowsAndMessaging::EDD_GET_DEVICE_INTERFACE_NAME,
-    }
-;
+        SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX},
+        IO::DeviceIoControl,
+    },
+    UI::WindowsAndMessaging::EDD_GET_DEVICE_INTERFACE_NAME,
+};
 
 use crate::utils::string_to_pcwstr;
 
@@ -94,7 +92,7 @@ impl DeviceId {
                 if cfg!(dev) {
                     println!("{e:?}")
                 }
-            },
+            }
         }
 
         Ok(String::from("undefined"))
@@ -171,7 +169,7 @@ impl DeviceId {
                         if cfg!(dev) {
                             println!("{e:?}")
                         }
-                    },
+                    }
                 }
 
                 let _ = CloseHandle(handle);
@@ -181,7 +179,7 @@ impl DeviceId {
                 if cfg!(dev) {
                     println!("{e:?}")
                 }
-            },
+            }
         }
 
         Err(())
@@ -269,14 +267,14 @@ impl DeviceId {
                         if cfg!(dev) {
                             println!("{e:?}")
                         }
-                    },
+                    }
                 },
 
                 Err(e) => {
                     if cfg!(dev) {
                         println!("{e:?}")
                     }
-                },
+                }
             }
         } else {
             return Ok(display_name);

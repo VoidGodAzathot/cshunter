@@ -4,8 +4,11 @@ use serde::{Deserialize, Serialize};
 use windows::Win32::{
     Foundation::{BOOL, HANDLE, MAX_PATH},
     Storage::FileSystem::{
-        CreateFileW, GetDiskFreeSpaceExW, GetLogicalDriveStringsW, GetVolumeInformationW, FILE_FLAG_BACKUP_SEMANTICS, FILE_GENERIC_READ, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING
-    }, System::SystemInformation::GetWindowsDirectoryW,
+        CreateFileW, GetDiskFreeSpaceExW, GetLogicalDriveStringsW, GetVolumeInformationW,
+        FILE_FLAG_BACKUP_SEMANTICS, FILE_GENERIC_READ, FILE_SHARE_DELETE, FILE_SHARE_READ,
+        FILE_SHARE_WRITE, OPEN_EXISTING,
+    },
+    System::SystemInformation::GetWindowsDirectoryW,
 };
 
 use crate::utils::string_to_pcwstr;
@@ -53,7 +56,7 @@ impl Volume {
             );
 
             if result.is_err() {
-                if cfg!(dev) { 
+                if cfg!(dev) {
                     println!("{}", result.err().unwrap());
                 }
             }
@@ -71,21 +74,22 @@ impl Volume {
 
             unsafe {
                 let result = GetVolumeInformationW(
-                    string_to_pcwstr(path.clone()), 
-                    None, 
-                    Some(null_mut()), 
-                    Some(null_mut()), 
-                    Some(null_mut()), 
-                    Some(&mut buf));
+                    string_to_pcwstr(path.clone()),
+                    None,
+                    Some(null_mut()),
+                    Some(null_mut()),
+                    Some(null_mut()),
+                    Some(&mut buf),
+                );
 
                 if result.is_err() {
-                    if cfg!(dev) { 
+                    if cfg!(dev) {
                         println!("{}", result.err().unwrap());
                     }
                 } else {
                     let fs = String::from_utf16_lossy(&buf);
                     let fs = fs.trim_end_matches("\0");
-                    
+
                     if fs.eq_ignore_ascii_case("ntfs") {
                         flags.push(Flag::NTFS);
                     }
@@ -96,7 +100,7 @@ impl Volume {
         // является ли диск системным
         {
             let mut buf = [0u16; MAX_PATH as usize];
-            
+
             unsafe {
                 if BOOL(GetWindowsDirectoryW(Some(&mut buf)) as i32).as_bool() {
                     let path_to_win_dir = String::from_utf16_lossy(&buf);
@@ -144,13 +148,14 @@ pub fn get_all_volumes() -> Vec<Volume> {
     {
         let mut buf = [0u16; 1024];
 
-        let logical_drives_buf_len = unsafe {
-            GetLogicalDriveStringsW(Some(&mut buf))
-        };
+        let logical_drives_buf_len = unsafe { GetLogicalDriveStringsW(Some(&mut buf)) };
 
         if logical_drives_buf_len > 0 {
             let buf_str = String::from_utf16_lossy(&buf);
-            let buf_str = buf_str.split("\0").filter(|s| !s.is_empty()).collect::<Vec<&str>>();
+            let buf_str = buf_str
+                .split("\0")
+                .filter(|s| !s.is_empty())
+                .collect::<Vec<&str>>();
 
             for vol in buf_str {
                 volumes.push(Volume::new(String::from(vol)));

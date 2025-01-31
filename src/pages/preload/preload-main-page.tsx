@@ -88,10 +88,10 @@ const tasks: Task[] = [
         name: "Снапшот файлов системы",
         id: "snapshot_files_system",
         worker: async () => {
-            //const [set, get,] = useStorage();
-            //const all_files = await get<string[]>("all_files");
-            //const context: AnalyzeContext = await invoke("generate_context", { files: all_files });
-            //await set<AnalyzeContext>("analyzer_context", context);
+            const [set, get,] = useStorage();
+            const all_files = await get<string[]>("all_files");
+            const context: AnalyzeContext = await invoke("generate_context", { files: all_files });
+            await set<AnalyzeContext>("analyzer_context", context);
         }
     },
     {

@@ -1,10 +1,10 @@
 use steam::{Steam, SteamAccount};
 
+pub mod convert;
 pub mod steam;
+pub mod tests;
 pub mod token;
 pub mod tree;
-pub mod tests;
-pub mod convert;
 
 #[tauri::command]
 pub fn get_steam_accounts_history() -> Vec<SteamAccount> {
