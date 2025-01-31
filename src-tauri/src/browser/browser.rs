@@ -9,11 +9,21 @@ pub struct Browser {
     pub id: String,
     pub path: PathBuf,
     pub driver: Driver,
+    pub support: bool,
 }
 
 impl Browser {
+    pub fn new(id: String, path: PathBuf, driver: Driver) -> Self {
+        Self {
+            id: id,
+            path: path.clone(),
+            driver: driver,
+            support: Path::exists(&path),
+        }
+    }
+
     pub fn is_present(&self) -> bool {
-        Path::exists(&self.path)
+        self.support
     }
 }
 
@@ -21,30 +31,30 @@ pub fn get_browsers() -> Vec<Browser> {
     let app_data_dir = PathBuf::from(format!("C:\\Users\\{}\\AppData", whoami::username()));
 
     return vec![
-        Browser {
-            id: String::from("chrome"),
-            path: app_data_dir.join("Local\\Google\\Chrome\\User Data\\Default"),
-            driver: Driver::BLINK,
-        },
-        Browser {
-            id: String::from("yandex"),
-            path: app_data_dir.join("Local\\Yandex\\YandexBrowser\\User Data\\Default"),
-            driver: Driver::BLINK,
-        },
-        Browser {
-            id: String::from("edge"),
-            path: app_data_dir.join("Local\\Microsoft\\Edge\\User Data\\Default"),
-            driver: Driver::BLINK,
-        },
-        Browser {
-            id: String::from("opera"),
-            path: app_data_dir.join("Roaming\\Opera Software\\Opera Stable\\Default"),
-            driver: Driver::BLINK,
-        },
-        Browser {
-            id: String::from("brave"),
-            path: app_data_dir.join("Local\\BraveSoftware\\Brave-Browser\\User Data\\Default"),
-            driver: Driver::BLINK,
-        },
+        Browser::new(
+            String::from("chrome"),
+            app_data_dir.join("Local\\Google\\Chrome\\User Data\\Default"),
+            Driver::BLINK,
+        ),
+        Browser::new(
+            String::from("yandex"),
+            app_data_dir.join("Local\\Yandex\\YandexBrowser\\User Data\\Default"),
+            Driver::BLINK,
+        ),
+        Browser::new(
+            String::from("edge"),
+            app_data_dir.join("Local\\Microsoft\\Edge\\User Data\\Default"),
+            Driver::BLINK,
+        ),
+        Browser::new(
+            String::from("opera"),
+            app_data_dir.join("Roaming\\Opera Software\\Opera Stable\\Default"),
+            Driver::BLINK,
+        ),
+        Browser::new(
+            String::from("brave"),
+            app_data_dir.join("Local\\BraveSoftware\\Brave-Browser\\User Data\\Default"),
+            Driver::BLINK,
+        )
     ];
 }
