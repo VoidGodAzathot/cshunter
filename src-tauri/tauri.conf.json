@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Preload Counter Strike Hunter",
-        "width": 600,
-        "height": 400,
+        "width": 500,
+        "height": 300,
         "resizable": false,
         "fullscreen": false,
         "transparent": true,

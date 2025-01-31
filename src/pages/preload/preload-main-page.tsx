@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import useStorage from "../../hooks/storage";
-import { Card, ProgressRoot, Text } from "@chakra-ui/react";
+import { Card, Container, ProgressRoot, Text } from "@chakra-ui/react";
 import { ProgressBar, ProgressLabel } from "../../components/ui/progress";
 import { Task } from "../../utils/task";
 import { AnalyzeContext, Browser, CacheDat, DownloadDat, FileRecord, SteamAccount, VisitDat, Volume } from "../../utils/types";
@@ -88,10 +88,10 @@ const tasks: Task[] = [
         name: "Снапшот файлов системы",
         id: "snapshot_files_system",
         worker: async () => {
-            const [set, get,] = useStorage();
-            const all_files = await get<string[]>("all_files");
-            const context: AnalyzeContext = await invoke("generate_context", { files: all_files });
-            await set<AnalyzeContext>("analyzer_context", context);
+            //const [set, get,] = useStorage();
+            //const all_files = await get<string[]>("all_files");
+            //const context: AnalyzeContext = await invoke("generate_context", { files: all_files });
+            //await set<AnalyzeContext>("analyzer_context", context);
         }
     },
     {
@@ -139,8 +139,8 @@ function PreloadMainPage() {
     }, [isLoaded]);
 
     return (
-        <div data-tauri-drag-region={true} className="font-inter w-[100vw] h-[100vh] select-none flex justify-center items-center">
-            <Card.Root variant="subtle" width="320px">
+        <Container width="100vw" height="calc(100vh - 30px)" data-tauri-drag-region={true} className="font-inter select-none flex justify-center items-center">
+            <Card.Root borderRadius={20} variant="subtle" width="320px">
                 <Card.Body>
                     <Card.Title spaceX={5} paddingBottom={5} className="items-center flex">
                         <PreloadBoxes />
@@ -165,7 +165,7 @@ function PreloadMainPage() {
                     </ProgressRoot>
                 </Card.Footer>
             </Card.Root>
-        </div>
+        </Container>
     )
 }
 

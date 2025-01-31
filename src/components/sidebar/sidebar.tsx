@@ -8,13 +8,15 @@ export default function Sidebar({ pages, provider }: { pages: Page[], provider: 
     return (
         <Box width="full" height="full">
             <Flex paddingRight={5} paddingLeft={5} alignItems="start" height="full" spaceX={5}>
-                <Flex spaceY={2} className={"flex transition-all duration-200 ease-in-out flex-col"}>
+                <Flex justify="space-between" height="calc(100vh - 50px)" className="flex flex-col transition-colors duration-200 ease-in-out">
+                    <Flex spaceY={2} className={"flex flex-col"}>
                     {
                         pages.map((page) =>
-                            <Button onClick={() => { if (currentPage.name != page.name) { setCurrentPage(page) } }} cursor={currentPage.name == page.name ? "default" : ""} disabled={currentPage.name == page.name} width="fit" backgroundColor="transparent" variant="ghost" borderRadius={50}>
+                            <Button color={currentPage.name == page.name ? "black" : "white"} background={currentPage.name == page.name ? "white" : "transparent"} onClick={() => { if (currentPage.name != page.name) { setCurrentPage(page) } }} cursor={currentPage.name == page.name ? "default" : ""} width="50px" height="50px" variant="ghost" borderRadius={50}>
                                 {page.icon}
                             </Button>)
                     }
+                    </Flex>
                 </Flex>
 
                 { provider(currentPage) }

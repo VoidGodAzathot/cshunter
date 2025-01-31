@@ -3,6 +3,7 @@ import { PaginationItems, PaginationNextTrigger, PaginationPrevTrigger, Paginati
 import { useEffect, useState } from "react";
 import { dateFromWebkit } from "../../utils/utils";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 export default function BrowserTableDataWrapper(filter: string, data: object[]): JSX.Element {
     const getAllKeys = <T extends object>(arr: T[]) => {
@@ -48,13 +49,18 @@ function BrowserTableData({ filter, data, keys }: { filter: string, data: object
         setup();
     }, []);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [totalPages]);
+
     return (
         <>
             {
                 isLoading ? <Center minH="100px"><Spinner /></Center> : (<Flex gap="5" direction="column" justify="space-between">
                     <Flex gap={{ base: 2, md: 5 }} direction="column">
-                        {paginatedData.map((item, index) => (
+                        {paginatedData.length > 0 ? paginatedData.map((item, index) => (
                             <Container
+                                margin="0"
                                 fontSize={{ base: 12, md: 14 }}
                                 borderRadius={{ base: "10px", md: "20px" }}
                                 borderWidth="1px"
@@ -82,8 +88,8 @@ function BrowserTableData({ filter, data, keys }: { filter: string, data: object
                                             maxH="150px"
                                             color="gray">
                                             <Highlight
-                                                query={filter.length == 0 ? [] : filter.trim().split("||")}
-                                                styles={{background: "white", color: "black" }}
+                                                query={filter.length == 0 ? [] : filter.split("||").map((item) => item.trim())}
+                                                styles={{ background: "white", color: "black" }}
                                             >
                                                 {key === "timestamp"
                                                     ? dateFromWebkit((item as Record<string, any>)[key] as number)
@@ -93,27 +99,33 @@ function BrowserTableData({ filter, data, keys }: { filter: string, data: object
                                     </Box>
                                 ))}
                             </Container>
-                        ))}
+                        )) :
+                            <Center gap="1" width="full" height="full" className="flex flex-col">
+                                <Icon color="gray" width="60px" height="60px" icon="lets-icons:sad-light"></Icon>
+                                <Text fontSize="14px" color="gray">Ничего не найдено по фильтру "{filter}"</Text>
+                            </Center>}
                     </Flex>
 
-                    <PaginationRoot
-                        count={data.length}
-                        pageSize={pageSize}
-                        page={currentPage}
-                        onPageChange={(s) => setCurrentPage(s.page)}
-                    >
-                        <HStack wrap="wrap">
-                            <PaginationPrevTrigger
-                                disabled={currentPage === 1}
-                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                            />
-                            <PaginationItems />
-                            <PaginationNextTrigger
-                                disabled={currentPage === totalPages}
-                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                            />
-                        </HStack>
-                    </PaginationRoot>
+                    {
+                        paginatedData.length > 0 ? (<PaginationRoot
+                            count={data.length}
+                            pageSize={pageSize}
+                            page={currentPage}
+                            onPageChange={(s) => setCurrentPage(s.page)}
+                        >
+                            <HStack wrap="wrap">
+                                <PaginationPrevTrigger
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                />
+                                <PaginationItems />
+                                <PaginationNextTrigger
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                />
+                            </HStack>
+                        </PaginationRoot>) : <></>
+                    }
                 </Flex>)
             }
         </>
