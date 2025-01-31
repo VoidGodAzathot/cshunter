@@ -62,9 +62,9 @@ export type AnalyzeContext = {
 
 export type ItemContext = {
     name: string,
+    path: string,
     size: number,
-    crc32: number[],
-    tls: number
+    crc32: number,
 }
 
 export type Page = {

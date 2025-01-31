@@ -4,8 +4,8 @@ import useStorage from "../../hooks/storage";
 import { invoke } from "@tauri-apps/api/core";
 import { Badge, Center, createListCollection, Flex, HStack, Input, Spinner, Stat, Tabs } from "@chakra-ui/react";
 import BrowserTableDataWrapper from "../../components/browser/browser-table-data";
-import { SelectContent, SelectItem, SelectLabel, SelectRoot, SelectTrigger, SelectValueText } from "../../components/ui/select";
-import { filterIsPresent } from "../../utils/utils";
+import { SelectContent, SelectItem, SelectRoot, SelectTrigger, SelectValueText } from "../../components/ui/select";
+import { asyncFilter, filterIsPresent } from "../../utils/utils";
 
 type BrowserData = {
     cache: CacheDat[],
@@ -22,20 +22,6 @@ export default function CSHunterBrowsersPage() {
     const [browsers, setBrowsers] = useState<Browser[]>([]);
     const [browsersData, setBrowsersData] = useState<BrowserData | undefined>(undefined);
     const dataTypes = createListCollection({ items: [{ label: "Кэш", value: "cache" }, { label: "Посещения", value: "visits" }, { label: "Загрузки", value: "downloads" }] })
-
-    async function asyncFilter<T>(arr: T[], cb: (el: T) => Promise<boolean>): Promise<T[]> {
-        const filtered: T[] = [];
-
-        for (const element of arr) {
-            const needAdd = await cb(element);
-
-            if (needAdd) {
-                filtered.push(element);
-            }
-        }
-
-        return filtered;
-    }
 
     async function applyFilter() {
         const response = browsersData ? (selectedDataType === "cache" ? await asyncFilter(browsersData.cache, async (item) => item.browser == selectedBrowser?.id && filterIsPresent(currentFilter, item)) : selectedDataType === "downloads" ? await asyncFilter(browsersData.downloads, async (item) => item.browser == selectedBrowser?.id && filterIsPresent(currentFilter, item)) : await asyncFilter(browsersData.visits, async (item) => item.browser == selectedBrowser?.id && filterIsPresent(currentFilter, item))) : [];

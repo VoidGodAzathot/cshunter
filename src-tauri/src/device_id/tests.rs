@@ -8,9 +8,9 @@ mod tests {
             Ok(device_id) => {
                 println!("{:?}", device_id.pairs);
                 println!("{}", device_id.to_string());
-            },
-    
-            Err(_) => { }
+            }
+
+            Err(_) => {}
         };
     }
 }

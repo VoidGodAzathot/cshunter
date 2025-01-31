@@ -11,9 +11,9 @@ pub fn get_device_id() -> String {
     match DeviceId::generate() {
         Ok(device_id) => {
             return device_id.to_string();
-        },
+        }
 
-        Err(_) => { }
+        Err(_) => {}
     };
 
     String::from("undefined")

@@ -22,7 +22,11 @@ pub struct Reader {
 }
 
 pub trait DriverReader {
-    fn read_downloads(&self, browser: Browser, temporary: HashMap<String, String>) -> Vec<DownloadDat>;
+    fn read_downloads(
+        &self,
+        browser: Browser,
+        temporary: HashMap<String, String>,
+    ) -> Vec<DownloadDat>;
     fn read_visit(&self, browser: Browser, temporary: HashMap<String, String>) -> Vec<VisitDat>;
     fn read_cache(&self, browser: Browser, temporary: HashMap<String, String>) -> Vec<CacheDat>;
 }
@@ -83,7 +87,8 @@ impl Reader {
             return vec![];
         }
 
-        self.employee.read_downloads(self.browser.clone(), self.temporary.clone())
+        self.employee
+            .read_downloads(self.browser.clone(), self.temporary.clone())
     }
 
     pub fn wrap_visit(&self) -> Vec<VisitDat> {
@@ -91,7 +96,8 @@ impl Reader {
             return vec![];
         }
 
-        self.employee.read_visit(self.browser.clone(), self.temporary.clone())
+        self.employee
+            .read_visit(self.browser.clone(), self.temporary.clone())
     }
 
     pub fn wrap_cache(&self) -> Vec<CacheDat> {
@@ -99,14 +105,19 @@ impl Reader {
             return vec![];
         }
 
-        self.employee.read_cache(self.browser.clone(), self.temporary.clone())
+        self.employee
+            .read_cache(self.browser.clone(), self.temporary.clone())
     }
 }
 
 pub struct BlinkDriverReader;
 
 impl DriverReader for BlinkDriverReader {
-    fn read_downloads(&self, browser: Browser, temporary: HashMap<String, String>) -> Vec<DownloadDat> {
+    fn read_downloads(
+        &self,
+        browser: Browser,
+        temporary: HashMap<String, String>,
+    ) -> Vec<DownloadDat> {
         let mut response = vec![];
 
         match sqlite::open(temporary.get("history").unwrap()) {

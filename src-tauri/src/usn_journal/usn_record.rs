@@ -135,10 +135,9 @@ impl FileRecord {
                                 Err(e) => {
                                     // мы слишком много выделили для получения результата, поэтому мы можем попробовать еще раз изменив размер на требуемый
                                     if e.code() == ERROR_MORE_DATA.to_hresult() {
-                                        let required_size =
-                                            buf.align_to::<FILE_NAME_INFO>().1[0]
-                                                .FileNameLength
-                                                as usize;
+                                        let required_size = buf.align_to::<FILE_NAME_INFO>().1[0]
+                                            .FileNameLength
+                                            as usize;
 
                                         buf_size = size_of::<FILE_NAME_INFO>() + required_size;
                                         buf.resize(buf_size, 0);
@@ -175,7 +174,7 @@ impl FileRecord {
                     if cfg!(dev) {
                         println!("{e:?}")
                     }
-                },
+                }
             }
         }
 

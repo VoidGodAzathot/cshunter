@@ -55,6 +55,6 @@ pub fn get_browsers() -> Vec<Browser> {
             String::from("brave"),
             app_data_dir.join("Local\\BraveSoftware\\Brave-Browser\\User Data\\Default"),
             Driver::BLINK,
-        )
+        ),
     ];
 }

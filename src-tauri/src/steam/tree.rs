@@ -16,12 +16,12 @@ impl Tree {
 
     pub fn find_original_struct_name(&self) -> Option<String> {
         let tokens = self.tokens.clone();
-        
+
         for i in 0..tokens.len() {
             let token = &tokens[i];
 
             if token._type.eq(&TokenType::OpenQuote) {
-                let next_token = &tokens[i+1];
+                let next_token = &tokens[i + 1];
 
                 if (next_token._type.eq(&TokenType::StructName)).to_owned() {
                     return next_token.value.clone();

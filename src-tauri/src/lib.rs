@@ -1,6 +1,8 @@
 use std::sync::Mutex;
 
-use analyzer::{create_analyzer_context, create_analyzer_context_from_url, generate_context, run_analyzer};
+use analyzer::{
+    create_analyzer_context, create_analyzer_context_from_url, generate_context, run_analyzer, save_context
+};
 use browser::{
     get_browser_cache_data, get_browser_download_data, get_browser_visit_data,
     get_supported_browsers,
@@ -15,16 +17,17 @@ use utils::{get_parallel_files, run_main_window_and_close_preload};
 pub mod analyzer;
 pub mod browser;
 pub mod device_id;
+pub mod emit;
 pub mod steam;
+pub mod storage;
 pub mod tests;
 pub mod usn_journal;
 pub mod utils;
-pub mod emit;
-pub mod storage;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             app.manage(Mutex::new(Storage::default()));
@@ -49,7 +52,8 @@ pub fn run() {
             run_main_window_and_close_preload,
             get_storage,
             set_storage,
-            get_all_storage
+            get_all_storage,
+            save_context
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
