@@ -5,6 +5,13 @@ export function dateFromWebkit(webkitTimestamp: number): string {
     return resultDate.toLocaleString();
 }
 
+export function dateFromUsn(timestamp: number): string {
+    const EPOCH_DIFF = 11644473600000;
+    const TICKS_PER_MILLISECOND = 10000;
+    const unixTimeMs = Number((timestamp / TICKS_PER_MILLISECOND) - EPOCH_DIFF);
+    return new Date(unixTimeMs).toLocaleString();
+}
+
 export function filterIsPresent<T>(filter: string, data: T): boolean {
     const filterValues = filter.split("||").map(item => item.trim().toLowerCase());
     if (filterValues.length === 0 || filterValues[0].length === 0) return true;

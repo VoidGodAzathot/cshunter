@@ -192,7 +192,7 @@ export default function CSHunterAnalyzerPage() {
                                             <>
                                                 {
                                                     currentMatches.map((match, i) =>
-                                                        <Box key={i} paddingX={5} paddingY={2} borderRadius={20} borderWidth="1px">
+                                                        <Box key={i} paddingX={5} paddingY={5} borderRadius={20} borderWidth="1px">
                                                             <Text minWidth="min-content"
                                                                 whiteSpace="normal"
                                                                 wordBreak="break-word">{match.name}</Text>
