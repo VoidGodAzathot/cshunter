@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import useStorage from "../../hooks/storage";
-import { Badge, Box, Button, Center, Flex, Spinner, Stat, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, Center, Flex, Link, Spinner, Stat, Text } from "@chakra-ui/react";
 import { AnalyzeContext } from "../../utils/types";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from "@tauri-apps/api/core";
 import { Toaster, toaster } from "../../components/ui/toaster"
+import { readText } from '@tauri-apps/plugin-clipboard-manager';
 
 type Match = {
     name: string,
@@ -31,15 +32,16 @@ export default function CSHunterAnalyzerPage() {
     }, []);
 
     useEffect(() => {
-        setIsMatching(true);
-
         async function applyFilter() {
+            setIsMatching(true);
+
             if (currentContext && sysContext) {
                 let matches: Match[] = [];
 
                 await currentContext.items.forEach(async (item_1) => {
-                    const fromSys: Match[] = sysContext.items.filter((item_2) => item_1.crc32 == item_2.crc32).map((item) => { return { name: item_1.name, path: item.path } })
-                    matches = [...matches, ...fromSys];
+                    const fromSys = sysContext.items.filter((item_2) => item_1.crc32 == item_2.crc32);
+                    const mapped = fromSys.map((item) => { return { name: item_1.name, path: item.path } });
+                    matches = [...matches, ...mapped];
                 })
 
                 setCurrentMatches(matches);
@@ -49,7 +51,7 @@ export default function CSHunterAnalyzerPage() {
         };
 
         applyFilter();
-    }, [currentContext]);
+    }, [currentContext, sysContext]);
 
     return (
         <>
@@ -78,11 +80,24 @@ export default function CSHunterAnalyzerPage() {
                                                 <Stat.ValueText fontSize={16}>
                                                     {currentContext.items.length}
                                                 </Stat.ValueText>
-                                            </Stat.Root> : <Badge width="fit" height="fit" colorPalette="red">не загружено</Badge>
+                                            </Stat.Root> : <Badge width="fit" borderRadius="20px" height="fit" colorPalette="red">не загружено</Badge>
                                         }
                                     </Flex>
 
                                     <Button onClick={async () => {
+                                        const clipboardBuf = await readText();
+                                        if (clipboardBuf.startsWith("http")) {
+                                            const context: AnalyzeContext | undefined = await invoke("create_analyzer_context_from_url", { url: clipboardBuf })
+                                            if (context) {
+                                                setCurrentContext(context);
+                                                toaster.create({
+                                                    title: "Успешно загружено",
+                                                    description: "Загрузка выполнена с ссылки из буффера обмена.",
+                                                    type: "success"
+                                                });
+                                                return;
+                                            }
+                                        }
                                         const file = await open({ multiple: false, filters: [{ name: "", extensions: ["json"] }], directory: false })
                                         if (file) {
                                             const context: AnalyzeContext | undefined = await invoke("create_analyzer_context", { path: file })
@@ -168,17 +183,25 @@ export default function CSHunterAnalyzerPage() {
                             <Box padding={5} borderRadius={20} borderWidth="1px" width="full" height="full" overflow="hidden" scrollbar="hidden">
                                 <Box spaceY={3} paddingRight={5} direction="column" scrollbar="visible" width="full" height="full" scrollBehavior="smooth" _scrollbarThumb={{ padding: "5", borderRadius: "20px", width: "1px", background: "gray" }} overflowY="auto">
                                     {
-                                        isMatching || currentMatches.length == 0 ? <Center height="full">
+                                        isMatching || currentMatches.length == 0 ? <Center gap={5} className="flex flex-col" height="full">
                                             <Spinner size="xl" />
+                                            {
+                                                isMatching ? <Text color="gray">Применение контекста</Text> : <Text color="gray">Ожидание</Text>
+                                            }
                                         </Center> :
                                             <>
                                                 {
-                                                    currentMatches.map((match) =>
-                                                        <Box paddingX={5} paddingY={2} borderRadius={20} borderWidth="1px">
-                                                            <Text>{match.name}</Text>
+                                                    currentMatches.map((match, i) =>
+                                                        <Box key={i} paddingX={5} paddingY={2} borderRadius={20} borderWidth="1px">
                                                             <Text minWidth="min-content"
                                                                 whiteSpace="normal"
-                                                                wordBreak="break-word" color="gray" fontSize="12px">{match.path}</Text>
+                                                                wordBreak="break-word">{match.name}</Text>
+                                                            <Link onClick={async () => {
+                                                                console.log("f")
+                                                                await invoke("open_explorer", { path: match.path });
+                                                            }} minWidth="min-content"
+                                                                whiteSpace="normal"
+                                                                wordBreak="break-word" color="gray" fontSize="12px">{match.path}</Link>
                                                         </Box>
                                                     )
                                                 }

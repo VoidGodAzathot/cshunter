@@ -77,7 +77,7 @@ export default function CSHunterBrowsersPage() {
                                 </Flex>
 
                                 {
-                                    browsers.map((browser) => (<Tabs.Content padding={0} value={browser.id}>{BrowserTableDataWrapper(currentFilter, currentData)}</Tabs.Content>))
+                                    browsers.map((browser, i) => (<Tabs.Content key={i} padding={0} value={browser.id}>{BrowserTableDataWrapper(currentFilter, currentData)}</Tabs.Content>))
                                 }
                             </Tabs.Root>
 
@@ -91,9 +91,9 @@ export default function CSHunterBrowsersPage() {
                                             {browsersData?.visits.length}
                                         </Stat.ValueText>
                                         {
-                                            browsersData && browsersData?.visits.length <= 250 ?
+                                            browsersData && browsersData.visits.length <= 250 ?
                                                 (
-                                                    <Badge width="fit" height="fit" colorPalette="red">
+                                                    <Badge borderRadius="20px" width="fit" height="fit" colorPalette="red">
                                                         очищено
                                                     </Badge>
                                                 ) : <></>
@@ -107,6 +107,14 @@ export default function CSHunterBrowsersPage() {
                                     <Stat.ValueText fontSize={18}>
                                         {browsersData?.downloads.length}
                                     </Stat.ValueText>
+                                    {
+                                        browsersData && browsersData.downloads.length <= 250 ?
+                                            (
+                                                <Badge borderRadius="20px" width="fit" height="fit" colorPalette="red">
+                                                    очищено
+                                                </Badge>
+                                            ) : <></>
+                                    }
                                 </Stat.Root>
                                 <Stat.Root borderWidth="1px" p="4" rounded={20}>
                                     <Stat.Label fontSize={14}>

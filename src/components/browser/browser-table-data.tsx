@@ -1,9 +1,10 @@
-import { Box, Container, Highlight, Flex, HStack, Text, Center, Spinner } from "@chakra-ui/react"
+import { Box, Container, Highlight, Flex, HStack, Text, Center, Spinner, Link } from "@chakra-ui/react"
 import { PaginationItems, PaginationNextTrigger, PaginationPrevTrigger, PaginationRoot } from "../ui/pagination"
 import { useEffect, useState } from "react";
 import { dateFromWebkit } from "../../utils/utils";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function BrowserTableDataWrapper(filter: string, data: object[]): JSX.Element {
     const getAllKeys = <T extends object>(arr: T[]) => {
@@ -83,19 +84,36 @@ function BrowserTableData({ filter, data, keys }: { filter: string, data: object
                                                         : key === "file" ? "Путь"
                                                             : ""}
                                         </Text>
-                                        <Text
-                                            overflow="hidden"
-                                            maxH="150px"
-                                            color="gray">
-                                            <Highlight
-                                                query={filter.length == 0 ? [] : filter.split("||").map((item) => item.trim())}
-                                                styles={{ background: "white", color: "black" }}
-                                            >
-                                                {key === "timestamp"
-                                                    ? dateFromWebkit((item as Record<string, any>)[key] as number)
-                                                    : (item as Record<string, any>)[key] || "-"}
-                                            </Highlight>
-                                        </Text>
+                                        {
+                                            key != "url" ? (<Text
+                                                overflow="hidden"
+                                                maxH="150px"
+                                                color="gray">
+                                                <Highlight
+                                                    query={filter.length == 0 ? [] : filter.split("||").map((item) => item.trim())}
+                                                    styles={{ background: "white", height: "fit", color: "black" }}
+                                                >
+                                                    {key === "timestamp"
+                                                        ? dateFromWebkit((item as Record<string, any>)[key] as number)
+                                                        : (item as Record<string, any>)[key] || "-"}
+                                                </Highlight>
+                                            </Text>) : (<Link
+                                                overflow="hidden"
+                                                maxH="150px"
+                                                onClick={async () => {
+                                                    let url: string = (item as Record<string, any>)[key];
+                                                    if (!url.startsWith("https")) url = `https://${url}`;
+                                                    await invoke("open_url", { url: url });
+                                                }}
+                                                color="gray">
+                                                <Highlight
+                                                    query={filter.length == 0 ? [] : filter.split("||").map((item) => item.trim())}
+                                                    styles={{ background: "white", height: "fit", color: "black" }}
+                                                >
+                                                    {(item as Record<string, any>)[key] || "-"}
+                                                </Highlight>
+                                            </Link>)
+                                        }
                                     </Box>
                                 ))}
                             </Container>

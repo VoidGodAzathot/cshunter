@@ -12,7 +12,8 @@
       "core:window:allow-maximize",
       "core:window:allow-unmaximize",
       "core:window:allow-minimize",
-      "dialog:allow-open"
+      "dialog:allow-open",
+      "clipboard-manager:allow-read-text"
     ]
   }
   

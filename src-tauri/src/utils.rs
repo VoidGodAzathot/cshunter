@@ -1,4 +1,4 @@
-use std::{thread, time::Duration};
+use std::{os::windows::process::CommandExt, path::PathBuf, process::Command, thread, time::Duration};
 
 use jwalk::WalkDir;
 use rand::{distr::Alphanumeric, Rng};
@@ -33,6 +33,39 @@ pub fn get_parallel_files(start_path: String) -> Vec<String> {
         .filter(|e| e.file_type().is_file())
         .map(|e| e.path().to_string_lossy().into_owned())
         .collect()
+}
+
+#[tauri::command]
+pub fn open_explorer(path: String) {
+    let mut path_buf = PathBuf::from(&path);
+
+    if path_buf.exists() && path_buf.is_file() {
+        if let Some(parent) = path_buf.parent() {
+            path_buf = parent.to_path_buf();
+        }
+    }
+
+    if !path_buf.is_dir() {
+        return;
+    }
+
+    let _ = Command::new("explorer")
+        .arg(path_buf)
+        .creation_flags(0x08000000)
+        .spawn();
+}
+
+#[tauri::command]
+pub fn open_url(url: String) {
+    if !(url.starts_with("http://") || url.starts_with("https://")) {
+        return;
+    }
+
+    let _ = Command::new("cmd")
+        .args(&["/C", "start", url.as_str()])
+        .creation_flags(0x08000000)
+        .spawn()
+        .map_err(|e| e.to_string());
 }
 
 #[tauri::command]

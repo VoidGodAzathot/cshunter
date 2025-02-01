@@ -11,8 +11,8 @@ export default function Sidebar({ pages, provider }: { pages: Page[], provider: 
                 <Flex justify="space-between" height="calc(100vh - 50px)" className="flex flex-col transition-colors duration-200 ease-in-out">
                     <Flex spaceY={2} className={"flex flex-col"}>
                     {
-                        pages.map((page) =>
-                            <Button color={currentPage.name == page.name ? "black" : "white"} background={currentPage.name == page.name ? "white" : "transparent"} onClick={() => { if (currentPage.name != page.name) { setCurrentPage(page) } }} cursor={currentPage.name == page.name ? "default" : ""} width="50px" height="50px" variant="ghost" borderRadius={50}>
+                        pages.map((page, i) =>
+                            <Button key={i} color={currentPage.name == page.name ? "black" : "white"} background={currentPage.name == page.name ? "white" : "transparent"} onClick={() => { if (currentPage.name != page.name) { setCurrentPage(page) } }} cursor={currentPage.name == page.name ? "default" : ""} width="50px" height="50px" variant="ghost" borderRadius={50}>
                                 {page.icon}
                             </Button>)
                     }

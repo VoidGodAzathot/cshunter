@@ -1,7 +1,8 @@
 use std::sync::Mutex;
 
 use analyzer::{
-    create_analyzer_context, create_analyzer_context_from_url, generate_context, run_analyzer, save_context
+    create_analyzer_context, create_analyzer_context_from_url, generate_context, run_analyzer,
+    save_context,
 };
 use browser::{
     get_browser_cache_data, get_browser_download_data, get_browser_visit_data,
@@ -12,7 +13,7 @@ use steam::{get_steam_accounts_history, is_vac_present};
 use storage::{get_all_storage, get_storage, set_storage, Storage};
 use tauri::Manager;
 use usn_journal::{get_all_volumes, get_usn_journal_records};
-use utils::{get_parallel_files, run_main_window_and_close_preload};
+use utils::{get_parallel_files, run_main_window_and_close_preload, open_explorer, open_url};
 
 pub mod analyzer;
 pub mod browser;
@@ -27,6 +28,7 @@ pub mod utils;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
@@ -53,7 +55,9 @@ pub fn run() {
             get_storage,
             set_storage,
             get_all_storage,
-            save_context
+            save_context,
+            open_explorer,
+            open_url
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
