@@ -50,7 +50,7 @@ export default function CSHunterBrowsersPage() {
         <>
             {
                 browsers.length > 0 ?
-                    (<Flex height="full" direction={"column"} justify="space-between">
+                    (<Flex height="full" direction="column" justify="space-between">
                         <Flex spaceX={5}>
                             <Input value={currentFilter} onChange={(e) => setCurrentFilter(e.target.value)} _placeholder={{ color: "gray" }} variant="outline" borderColor="border" placeholder="Фильтр" borderRadius="20px" />
 
@@ -77,7 +77,7 @@ export default function CSHunterBrowsersPage() {
                                 </Flex>
 
                                 {
-                                    browsers.map((browser, i) => (<Tabs.Content key={i} padding={0} value={browser.id}>{BrowserTableDataWrapper(currentFilter, currentData)}</Tabs.Content>))
+                                    browsers.map((browser, i) => (<Tabs.Content height="calc(100vh - 210px)" key={i} padding={0} value={browser.id}>{BrowserTableDataWrapper(currentFilter, currentData)}</Tabs.Content>))
                                 }
                             </Tabs.Root>
 

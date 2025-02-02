@@ -12,6 +12,11 @@ export function dateFromUsn(timestamp: number): string {
     return new Date(unixTimeMs).toLocaleString();
 }
 
+export function dateFromUnix(timestamp: number): string {
+    const resultDate = new Date(timestamp * 1000);
+    return resultDate.toLocaleString();
+}
+
 export function filterIsPresent<T>(filter: string, data: T): boolean {
     const filterValues = filter.split("||").map(item => item.trim().toLowerCase());
     if (filterValues.length === 0 || filterValues[0].length === 0) return true;

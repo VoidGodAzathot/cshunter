@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { FileRecord } from "../../utils/types"
 import useStorage from "../../hooks/storage";
-import { Box, Center, Flex, HStack, Input, Spinner, Text } from "@chakra-ui/react";
+import { Box, Center, Flex, Highlight, HStack, Input, Spinner, Text } from "@chakra-ui/react";
 import { PaginationItems, PaginationNextTrigger, PaginationPrevTrigger, PaginationRoot } from "../../components/ui/pagination";
 import { asyncFilter, dateFromUsn, filterIsPresent } from "../../utils/utils";
 
@@ -67,7 +67,11 @@ export default function CSHunterDelFilesPage() {
                                                     wordBreak="break-word">Имя файла</Text>
                                                 <Text minWidth="min-content"
                                                     whiteSpace="normal"
-                                                    wordBreak="break-word" color="gray" fontSize="12px">{file.name}</Text>
+                                                    wordBreak="break-word" color="gray" fontSize="12px">
+                                                    <Highlight styles={{ background: "white", height: "fit", color: "black" }} query={currentFilter.split("||").map((item) => item.trim())}>
+                                                        {file.name}
+                                                    </Highlight>
+                                                </Text>
                                             </Box>
 
                                             <Box>
@@ -83,26 +87,24 @@ export default function CSHunterDelFilesPage() {
                             </Box>
                         </Box>
 
-                        {
-                            (<PaginationRoot
-                                count={currentFiles.length}
-                                pageSize={pageSize}
-                                page={currentPage}
-                                onPageChange={(s) => setCurrentPage(s.page)}
-                            >
-                                <HStack wrap="wrap">
-                                    <PaginationPrevTrigger
-                                        disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                    />
-                                    <PaginationItems />
-                                    <PaginationNextTrigger
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                    />
-                                </HStack>
-                            </PaginationRoot>)
-                        }
+                        <PaginationRoot
+                            count={currentFiles.length}
+                            pageSize={pageSize}
+                            page={currentPage}
+                            onPageChange={(s) => setCurrentPage(s.page)}
+                        >
+                            <HStack wrap="wrap">
+                                <PaginationPrevTrigger
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                />
+                                <PaginationItems />
+                                <PaginationNextTrigger
+                                    disabled={currentPage === totalPages}
+                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                />
+                            </HStack>
+                        </PaginationRoot>
                     </Flex>
                 )
             }

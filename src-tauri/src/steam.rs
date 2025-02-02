@@ -2,7 +2,6 @@ use steam::{Steam, SteamAccount};
 
 pub mod convert;
 pub mod steam;
-pub mod tests;
 pub mod token;
 pub mod tree;
 

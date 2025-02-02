@@ -4,7 +4,6 @@ use net_id::NetId;
 pub mod device_id;
 pub mod net_id;
 pub mod shuffle;
-pub mod tests;
 
 #[tauri::command]
 pub fn get_device_id() -> String {

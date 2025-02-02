@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import useStorage from "../../hooks/storage";
-import { Badge, Box, Button, Center, Flex, Link, Spinner, Stat, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, Center, Flex, HStack, Link, Spinner, Stat, Text } from "@chakra-ui/react";
 import { AnalyzeContext } from "../../utils/types";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from "@tauri-apps/api/core";
 import { Toaster, toaster } from "../../components/ui/toaster"
 import { readText } from '@tauri-apps/plugin-clipboard-manager';
+import { PaginationItems, PaginationNextTrigger, PaginationPrevTrigger, PaginationRoot } from "../../components/ui/pagination";
 
 type Match = {
     name: string,
@@ -20,6 +21,18 @@ export default function CSHunterAnalyzerPage() {
     const [sysContext, setSysContext] = useState<AnalyzeContext | undefined>(undefined);
     const [currentContext, setCurrentContext] = useState<AnalyzeContext | undefined>(undefined);
     const [currentMatches, setCurrentMatches] = useState<Match[]>([]);
+    const pageSize = 100;
+    const [currentPage, setCurrentPage] = useState(1);
+    const totalPages = Math.ceil(currentMatches.length / pageSize);
+
+    const paginatedData = currentMatches.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [totalPages]);
 
     useEffect(() => {
         async function setup() {
@@ -38,11 +51,12 @@ export default function CSHunterAnalyzerPage() {
             if (currentContext && sysContext) {
                 let matches: Match[] = [];
 
-                await currentContext.items.forEach(async (item_1) => {
-                    const fromSys = sysContext.items.filter((item_2) => item_1.crc32 == item_2.crc32);
-                    const mapped = fromSys.map((item) => { return { name: item_1.name, path: item.path } });
+                for (let i = 0; i < currentContext.items.length; i++) {
+                    const item = currentContext.items[i];
+                    const fromSys = sysContext.items.filter((item_2) => item.crc32 == item_2.crc32);
+                    const mapped = fromSys.map((item) => { return { name: item.name, path: item.path } });
                     matches = [...matches, ...mapped];
-                })
+                }
 
                 setCurrentMatches(matches);
             }
@@ -191,13 +205,12 @@ export default function CSHunterAnalyzerPage() {
                                         </Center> :
                                             <>
                                                 {
-                                                    currentMatches.map((match, i) =>
+                                                    paginatedData.map((match, i) =>
                                                         <Box key={i} paddingX={5} paddingY={5} borderRadius={20} borderWidth="1px">
                                                             <Text minWidth="min-content"
                                                                 whiteSpace="normal"
                                                                 wordBreak="break-word">{match.name}</Text>
                                                             <Link onClick={async () => {
-                                                                console.log("f")
                                                                 await invoke("open_explorer", { path: match.path });
                                                             }} minWidth="min-content"
                                                                 whiteSpace="normal"
@@ -209,6 +222,27 @@ export default function CSHunterAnalyzerPage() {
                                     }
                                 </Box>
                             </Box>
+
+                            {
+                                paginatedData.length > 0 ? (<PaginationRoot
+                                    count={currentMatches.length}
+                                    pageSize={pageSize}
+                                    page={currentPage}
+                                    onPageChange={(s) => setCurrentPage(s.page)}
+                                >
+                                    <HStack wrap="wrap">
+                                        <PaginationPrevTrigger
+                                            disabled={currentPage === 1}
+                                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                        />
+                                        <PaginationItems />
+                                        <PaginationNextTrigger
+                                            disabled={currentPage === totalPages}
+                                            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                        />
+                                    </HStack>
+                                </PaginationRoot>) : <></>
+                            }
                         </Flex>
                     )
             }

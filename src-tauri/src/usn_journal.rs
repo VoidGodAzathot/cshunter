@@ -2,7 +2,6 @@ use usn_journal::UsnJournal;
 use usn_record::FileRecord;
 use volume::Volume;
 
-pub mod tests;
 pub mod usn_journal;
 pub mod usn_record;
 pub mod volume;

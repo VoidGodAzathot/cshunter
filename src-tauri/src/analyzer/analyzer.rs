@@ -1,10 +1,9 @@
 use std::{fmt::Debug, fs::File, io::Read, path::Path};
 
-use rayon::iter::{IntoParallelIterator, ParallelBridge, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
-use tauri::{Emitter, Window};
 
-use crate::{emit::events::ANALYZER_EMIT_EVENT, utils::get_parallel_files};
+use crate::utils::get_parallel_files;
 
 use super::context::{AnalyzerContext, ItemContext};
 
@@ -31,64 +30,6 @@ pub struct Analyzer {
 impl Analyzer {
     pub fn new(context: AnalyzerContext) -> Self {
         Self { context: context }
-    }
-
-    pub fn run_analyze(&self, start_path: String, emitter: Window) {
-        let id: u16 = rand::random_range(0..u16::MAX);
-
-        let _ = emitter.emit(
-            ANALYZER_EMIT_EVENT,
-            Payload::<Empty> {
-                task_id: id as u64,
-                _type: String::from("start"),
-                data: Empty {},
-            },
-        );
-
-        let targets = get_parallel_files(start_path);
-
-        targets.iter().par_bridge().for_each(|target| {
-            let file_context =
-                Analyzer::create_file_context(String::new(), target.to_string(), false);
-
-            if file_context.is_some() {
-                let file_context = file_context.unwrap();
-
-                let matches = self
-                    .context
-                    .items
-                    .iter()
-                    .par_bridge()
-                    .filter(|item| item.to_owned().to_owned() == file_context)
-                    .map(|item| item.to_owned())
-                    .collect::<Vec<ItemContext>>();
-
-                if matches.len() != 0 {
-                    let _match = Match {
-                        items: matches,
-                        path: target.clone(),
-                    };
-
-                    let _ = emitter.emit(
-                        ANALYZER_EMIT_EVENT,
-                        Payload::<Match> {
-                            task_id: id as u64,
-                            _type: String::from("match"),
-                            data: _match,
-                        },
-                    );
-                }
-            }
-        });
-
-        let _ = emitter.emit(
-            ANALYZER_EMIT_EVENT,
-            Payload::<Empty> {
-                task_id: id as u64,
-                _type: String::from("stop"),
-                data: Empty {},
-            },
-        );
     }
 
     pub fn create_file_context(name: String, path: String, with_path: bool) -> Option<ItemContext> {

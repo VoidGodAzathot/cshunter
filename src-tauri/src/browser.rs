@@ -7,7 +7,6 @@ use driver::{BlinkDriverReader, Driver, Reader};
 pub mod browser;
 pub mod dat;
 pub mod driver;
-pub mod tests;
 
 #[tauri::command]
 pub fn get_supported_browsers() -> Vec<Browser> {

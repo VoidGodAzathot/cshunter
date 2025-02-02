@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use analyzer::{
-    create_analyzer_context, create_analyzer_context_from_url, generate_context, run_analyzer,
+    create_analyzer_context, create_analyzer_context_from_url, generate_context,
     save_context,
 };
 use browser::{
@@ -21,7 +21,6 @@ pub mod device_id;
 pub mod emit;
 pub mod steam;
 pub mod storage;
-pub mod tests;
 pub mod usn_journal;
 pub mod utils;
 
@@ -50,7 +49,6 @@ pub fn run() {
             create_analyzer_context,
             create_analyzer_context_from_url,
             generate_context,
-            run_analyzer,
             run_main_window_and_close_preload,
             get_storage,
             set_storage,

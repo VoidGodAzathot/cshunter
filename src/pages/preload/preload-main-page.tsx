@@ -139,8 +139,8 @@ function PreloadMainPage() {
     }, [isLoaded]);
 
     return (
-        <Container width="100vw" height="calc(100vh - 30px)" data-tauri-drag-region={true} className="font-inter select-none flex justify-center items-center">
-            <Card.Root borderRadius={20} variant="subtle" width="320px">
+        <Container width="100vw" height="calc(100vh - 30px)" className="font-inter select-none flex justify-center items-center">
+            <Card.Root borderRadius={20} variant="outline" background="transparent" width="320px">
                 <Card.Body>
                     <Card.Title spaceX={5} paddingBottom={5} className="items-center flex">
                         <PreloadBoxes />

@@ -1,12 +1,10 @@
-use std::{fs::File, io::Write, path::Path, thread};
+use std::{fs::File, io::Write, path::Path};
 
 use analyzer::Analyzer;
 use context::{load_context, load_context_from_url, AnalyzerContext};
-use tauri::Window;
 
 pub mod analyzer;
 pub mod context;
-pub mod tests;
 
 #[tauri::command(async)]
 pub async fn create_analyzer_context_from_url(url: String) -> Option<AnalyzerContext> {
@@ -44,12 +42,4 @@ pub fn save_context(dir: String, context: AnalyzerContext) {
             }
         }
     }
-}
-
-#[tauri::command(async)]
-pub fn run_analyzer(context: AnalyzerContext, start_path: String, emitter: Window) {
-    thread::spawn(|| {
-        let analyzer = Analyzer::new(context);
-        analyzer.run_analyze(start_path, emitter);
-    });
 }

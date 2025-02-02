@@ -23,7 +23,8 @@
         "decorations": false,
         "center": true,
         "shadow": false,
-        "visible": true
+        "visible": true,
+        "closable": false
       },
       {
         "label": "cshunter",
