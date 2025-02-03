@@ -481,7 +481,7 @@ impl VMDetector {
         let vm_files_method = VMDetectWrapper::<VMFilesMethod>::new();
         let hardware_method = VMDetectWrapper::<HardwareMethod>::new();
 
-        let score = &vmware_brand_method.score()
+        let score = vmware_brand_method.score()
             + mac_address_method.score()
             + services_method.score()
             + hyper_visor_method.score()

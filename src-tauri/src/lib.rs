@@ -19,7 +19,6 @@ use vmdetect::is_vm;
 pub mod analyzer;
 pub mod browser;
 pub mod device_id;
-pub mod emit;
 pub mod steam;
 pub mod storage;
 pub mod usn_journal;

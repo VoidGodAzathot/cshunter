@@ -12,7 +12,7 @@ function TitleLayout({ children }: { children: JSX.Element }) {
     const [minimizable, setMinimizable] = useState<boolean>(false);
     const [maximizable, setMaximizable] = useState<boolean>(false);
     const [closable, setClosable] = useState<boolean>(false);
-    const [tags, setTags] = useState<Tag[]>([{ msg: "vm env", desc: "Программа запущена в виртуальной среде.", id: "vmd_verdict", color: "red" }]);
+    const [tags, setTags] = useState<Tag[]>([]);
 
     async function maximize() {
         if (await window?.isMaximized()) {

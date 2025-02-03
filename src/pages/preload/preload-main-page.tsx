@@ -141,7 +141,7 @@ function PreloadMainPage() {
     }, [isLoaded]);
 
     return (
-        <Container width="100vw" height="calc(100vh - 30px)" padding={5} className="font-inter select-none flex justify-center items-center">
+        <Container width="100vw" height="calc(100vh - 30px)" padding={5} paddingTop={0} className="font-inter select-none flex justify-center items-center">
             <Card.Root borderRadius={20} borderWidth="1px" background="#18181B" variant="subtle" height="full" width="full">
                 <Card.Body>
                     <Card.Title spaceX={5} paddingBottom={5} className="items-center flex">
