@@ -72,3 +72,14 @@ export type Page = {
     icon: JSX.Element,
     name: string
 }
+
+export type StorageUpdate = {
+    name: string
+}
+
+export type Tag = {
+    msg: string,
+    id: string,
+    desc: string,
+    color: "red" | "green" | "blue"
+}

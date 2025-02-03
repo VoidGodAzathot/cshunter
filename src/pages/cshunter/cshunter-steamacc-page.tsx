@@ -59,7 +59,7 @@ export default function CSHunterSteamAccPage() {
                                                     await invoke("open_url", { url: `https://steamcommunity.com/profiles/${account.source.id}` });
                                                 }}
                                                 whiteSpace="normal"
-                                                wordBreak="break-word" color="gray" fontSize="12px">{account.source.account_name}</Link>
+                                                wordBreak="break-word" color="gray" fontSize="14px">{account.source.account_name}</Link>
                                         </Box>
 
                                         <Box>
@@ -68,7 +68,7 @@ export default function CSHunterSteamAccPage() {
                                                 wordBreak="break-word">Дата входа</Text>
                                             <Text minWidth="min-content"
                                                 whiteSpace="normal"
-                                                wordBreak="break-word" color="gray" fontSize="12px">{dateFromUnix(Number(account.source.timestamp))}</Text>
+                                                wordBreak="break-word" color="gray" fontSize="14px">{dateFromUnix(Number(account.source.timestamp))}</Text>
                                         </Box>
                                     </Flex>
 

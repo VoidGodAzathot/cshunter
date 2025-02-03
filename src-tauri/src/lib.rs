@@ -14,6 +14,7 @@ use storage::{get_all_storage, get_storage, set_storage, Storage};
 use tauri::Manager;
 use usn_journal::{get_all_volumes, get_usn_journal_records};
 use utils::{get_parallel_files, run_main_window_and_close_preload, open_explorer, open_url};
+use vmdetect::is_vm;
 
 pub mod analyzer;
 pub mod browser;
@@ -22,6 +23,7 @@ pub mod emit;
 pub mod steam;
 pub mod storage;
 pub mod usn_journal;
+pub mod vmdetect;
 pub mod utils;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -55,7 +57,8 @@ pub fn run() {
             get_all_storage,
             save_context,
             open_explorer,
-            open_url
+            open_url,
+            is_vm
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -209,12 +209,13 @@ export default function CSHunterAnalyzerPage() {
                                                         <Box key={i} paddingX={5} paddingY={5} borderRadius={20} borderWidth="1px">
                                                             <Text minWidth="min-content"
                                                                 whiteSpace="normal"
+                                                                fontSize="14px"
                                                                 wordBreak="break-word">{match.name}</Text>
                                                             <Link onClick={async () => {
                                                                 await invoke("open_explorer", { path: match.path });
                                                             }} minWidth="min-content"
                                                                 whiteSpace="normal"
-                                                                wordBreak="break-word" color="gray" fontSize="12px">{match.path}</Link>
+                                                                wordBreak="break-word" color="gray" fontSize="14px">{match.path}</Link>
                                                         </Box>
                                                     )
                                                 }

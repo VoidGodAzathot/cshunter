@@ -64,10 +64,11 @@ export default function CSHunterDelFilesPage() {
                                             <Box>
                                                 <Text minWidth="min-content"
                                                     whiteSpace="normal"
+                                                    fontSize="14px"
                                                     wordBreak="break-word">Имя файла</Text>
                                                 <Text minWidth="min-content"
                                                     whiteSpace="normal"
-                                                    wordBreak="break-word" color="gray" fontSize="12px">
+                                                    wordBreak="break-word" color="gray" fontSize="14px">
                                                     <Highlight styles={{ background: "white", height: "fit", color: "black" }} query={currentFilter.split("||").map((item) => item.trim())}>
                                                         {file.name}
                                                     </Highlight>
@@ -77,10 +78,11 @@ export default function CSHunterDelFilesPage() {
                                             <Box>
                                                 <Text minWidth="min-content"
                                                     whiteSpace="normal"
+                                                    fontSize="14px"
                                                     wordBreak="break-word">Дата удаления</Text>
                                                 <Text minWidth="min-content"
                                                     whiteSpace="normal"
-                                                    wordBreak="break-word" color="gray" fontSize="12px">{dateFromUsn(file.timestamp)}</Text>
+                                                    wordBreak="break-word" color="gray" fontSize="14px">{dateFromUsn(file.timestamp)}</Text>
                                             </Box>
                                         </Box>)
                                 }
