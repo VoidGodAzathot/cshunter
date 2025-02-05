@@ -99,19 +99,21 @@ export default function CSHunterAnalyzerPage() {
                                     </Flex>
 
                                     <Button onClick={async () => {
-                                        const clipboardBuf = await readText();
-                                        if (clipboardBuf.startsWith("http")) {
-                                            const context: AnalyzeContext | undefined = await invoke("create_analyzer_context_from_url", { url: clipboardBuf })
-                                            if (context) {
-                                                setCurrentContext(context);
-                                                toaster.create({
-                                                    title: "Успешно загружено",
-                                                    description: "Загрузка выполнена с ссылки из буффера обмена.",
-                                                    type: "success"
-                                                });
-                                                return;
+                                        try {
+                                            const clipboardBuf = await readText();
+                                            if (clipboardBuf.startsWith("http")) {
+                                                const context: AnalyzeContext | undefined = await invoke("create_analyzer_context_from_url", { url: clipboardBuf })
+                                                if (context) {
+                                                    setCurrentContext(context);
+                                                    toaster.create({
+                                                        title: "Успешно загружено",
+                                                        description: "Загрузка выполнена с ссылки из буффера обмена.",
+                                                        type: "success"
+                                                    });
+                                                    return;
+                                                }
                                             }
-                                        }
+                                        } catch { }
                                         const file = await open({ multiple: false, filters: [{ name: "", extensions: ["json"] }], directory: false })
                                         if (file) {
                                             const context: AnalyzeContext | undefined = await invoke("create_analyzer_context", { path: file })
