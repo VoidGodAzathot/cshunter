@@ -4,6 +4,7 @@ import { SteamAccount } from "../../utils/types";
 import useStorage from "../../hooks/storage";
 import { invoke } from "@tauri-apps/api/core";
 import { dateFromUnix } from "../../utils/utils";
+import { Icon } from "@iconify/react/dist/iconify.js";
 
 type WrappedSteamAccount = {
     source: SteamAccount,
@@ -48,7 +49,7 @@ export default function CSHunterSteamAccPage() {
                     (<Box padding={5} borderRadius={20} borderWidth="1px" width="full" height="full" overflow="hidden" scrollbar="hidden">
                         <Box spaceY={3} paddingRight={5} direction="column" scrollbar="visible" width="full" height="full" scrollBehavior="smooth" _scrollbarThumb={{ padding: "5", borderRadius: "20px", width: "1px", background: "gray" }} overflowY="auto">
                             {
-                                accounts.map((account, i) => <Flex key={i} direction="row" justify="space-between" gap={5} paddingX={5} paddingY={5} borderRadius={20} borderWidth="1px">
+                                accounts.length > 0 ? accounts.map((account, i) => <Flex key={i} direction="row" justify="space-between" gap={5} paddingX={5} paddingY={5} borderRadius={20} borderWidth="1px">
                                     <Flex direction="column" gap={1}>
                                         <Box>
                                             <Text minWidth="min-content"
@@ -87,7 +88,10 @@ export default function CSHunterSteamAccPage() {
                                             </Badge> : <></>
                                         }
                                     </Flex>
-                                </Flex>)
+                                </Flex>) : <Center gap="1" width="full" height="full" className="flex flex-col">
+                                    <Icon color="gray" width="60px" height="60px" icon="lets-icons:sad-light"></Icon>
+                                    <Text fontSize="14px" color="gray">Аккаунты не найдены</Text>
+                                </Center>
                             }
                         </Box>
                     </Box>)

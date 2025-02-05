@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { getCurrentWebviewWindow, WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { Badge, Button, Flex } from "@chakra-ui/react";
+import { Badge, Button, Flex, Text } from "@chakra-ui/react";
 import { Icon } from '@iconify/react';
 import useStorage from "../hooks/storage";
 import { Tooltip } from "../components/ui/tooltip";
 import { Tag } from "../utils/types";
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "../components/ui/menu";
+import { getVersion } from "@tauri-apps/api/app";
+import { invoke } from "@tauri-apps/api/core";
+import { GITHUB_URL } from "../utils/consts";
 
 function TitleLayout({ children }: { children: JSX.Element }) {
     const [, get, , setupListen] = useStorage();
@@ -12,6 +16,7 @@ function TitleLayout({ children }: { children: JSX.Element }) {
     const [minimizable, setMinimizable] = useState<boolean>(false);
     const [maximizable, setMaximizable] = useState<boolean>(false);
     const [closable, setClosable] = useState<boolean>(false);
+    const [version, setVersion] = useState<string | undefined>(undefined);
     const [tags, setTags] = useState<Tag[]>([]);
 
     async function maximize() {
@@ -25,11 +30,13 @@ function TitleLayout({ children }: { children: JSX.Element }) {
     useEffect(() => {
         async function setup() {
             const is_vm = await get<boolean>("vmd_verdict");
-    
+
             if (is_vm && tags.filter((tag) => tag.id === "vmd_verdict").length == 0) {
                 const tag: Tag = { msg: "vm env", desc: "Программа запущена в виртуальной среде.", id: "vmd_verdict", color: "red" };
                 setTags((bef) => [...bef, ...[tag]]);
             }
+
+            setVersion(await getVersion());
         }
 
         async function fetchWindow() {
@@ -66,6 +73,20 @@ function TitleLayout({ children }: { children: JSX.Element }) {
                             ))
                         }
                     </Flex>
+
+                    <MenuRoot positioning={{ placement: "bottom" }} variant="subtle">
+                        <MenuTrigger>
+                            <Button disabled={window?.label != "cshunter"} borderRadius="0px" variant="ghost" width={30} height={30}>
+                                <Icon color="gray" icon="material-symbols:menu"></Icon>
+                            </Button>
+                        </MenuTrigger>
+                        <MenuContent spaceY="5px" shadow="none" backgroundColor="#18181B" borderRadius="20px" borderWidth="1px">
+                            <MenuItem onClick={async () => await invoke("open_url", { url: GITHUB_URL })} fontSize="13px" borderRadius="20px" value="github-source"><Icon icon="mdi:github"></Icon> Исходный код</MenuItem>
+                            <Flex className="select-none" fontSize="12px" color="gray" gap={5} width="full" height="full" alignItems="center" justify="center">
+                                <Text fontSize="12px" color="gray">{version}</Text>
+                            </Flex>
+                        </MenuContent>
+                    </MenuRoot>
 
                     <Button backgroundColor="bg" disabled={!minimizable} onClick={async () => await window?.minimize()} size="sm" width={30} height={30} variant="subtle" className="hover:opacity-80 items-center justify-center" borderRadius="0">
                         <Icon icon="qlementine-icons:windows-minimize-16"></Icon>

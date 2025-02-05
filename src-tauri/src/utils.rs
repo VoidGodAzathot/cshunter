@@ -103,9 +103,11 @@ pub fn run_main_window_and_close_preload(app: AppHandle) {
         if cshunter_window.is_none() {
             return;
         }
-        let _ = preload_window.unwrap().close();
+        let _ = preload_window.unwrap().hide();
+        let cshunter_window = cshunter_window.unwrap();
+        let _ = cshunter_window.eval("window.location.reload()");
         thread::sleep(Duration::from_millis(1000));
-        let _ = cshunter_window.unwrap().show();
+        let _ = cshunter_window.show();
     });
 }
 
