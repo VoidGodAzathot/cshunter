@@ -6,12 +6,13 @@ import CSHunterBrowsersPage from "./cshunter-browsers-page";
 import CSHunterAnalyzerPage from "./cshunter-analyzer-page";
 import CSHunterDelFilesPage from "./cshunter-delfiles-page";
 import CSHunterSteamAccPage from "./cshunter-steamacc-page";
+import CSHunterMiniDatPage from "./cshunter-mini-dat-page";
 
 const pages: Page[] = [
     {
-        name: "Главная",
-        icon: <Icon width="30px" height="30px" icon="material-symbols:home-rounded"></Icon>,
-        source: () => <div>test</div>
+        name: "Данные об использовании",
+        icon: <Icon width="30px" height="30px" icon="fluent:data-pie-20-filled"></Icon>,
+        source: CSHunterMiniDatPage
     },
     {
         name: "Стим Аккаунты",

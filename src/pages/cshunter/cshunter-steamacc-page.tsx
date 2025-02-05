@@ -48,11 +48,12 @@ export default function CSHunterSteamAccPage() {
                     (<Box padding={5} borderRadius={20} borderWidth="1px" width="full" height="full" overflow="hidden" scrollbar="hidden">
                         <Box spaceY={3} paddingRight={5} direction="column" scrollbar="visible" width="full" height="full" scrollBehavior="smooth" _scrollbarThumb={{ padding: "5", borderRadius: "20px", width: "1px", background: "gray" }} overflowY="auto">
                             {
-                                accounts.map((account) => <Flex direction="row" justify="space-between" gap={5} paddingX={5} paddingY={5} borderRadius={20} borderWidth="1px">
+                                accounts.map((account, i) => <Flex key={i} direction="row" justify="space-between" gap={5} paddingX={5} paddingY={5} borderRadius={20} borderWidth="1px">
                                     <Flex direction="column" gap={1}>
                                         <Box>
                                             <Text minWidth="min-content"
                                                 whiteSpace="normal"
+                                                fontSize="14px"
                                                 wordBreak="break-word">Логин</Text>
                                             <Link minWidth="min-content"
                                                 onClick={async () => {
@@ -65,6 +66,7 @@ export default function CSHunterSteamAccPage() {
                                         <Box>
                                             <Text minWidth="min-content"
                                                 whiteSpace="normal"
+                                                fontSize="14px"
                                                 wordBreak="break-word">Дата входа</Text>
                                             <Text minWidth="min-content"
                                                 whiteSpace="normal"

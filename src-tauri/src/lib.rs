@@ -9,6 +9,7 @@ use browser::{
     get_supported_browsers,
 };
 use device_id::{get_device_id, get_ip_addr};
+use mini_dat::{collect_mini_dat, get_mini_dat_info};
 use steam::{get_steam_accounts_history, is_vac_present};
 use storage::{get_all_storage, get_storage, set_storage, Storage};
 use tauri::Manager;
@@ -20,6 +21,7 @@ pub mod analyzer;
 pub mod browser;
 pub mod device_id;
 pub mod steam;
+pub mod mini_dat;
 pub mod storage;
 pub mod usn_journal;
 pub mod vmdetect;
@@ -57,7 +59,9 @@ pub fn run() {
             save_context,
             open_explorer,
             open_url,
-            is_vm
+            is_vm,
+            collect_mini_dat,
+            get_mini_dat_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

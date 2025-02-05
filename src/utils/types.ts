@@ -83,3 +83,14 @@ export type Tag = {
     desc: string,
     color: "red" | "green" | "blue"
 }
+
+export type MiniDat = {
+    value: string,
+    id: string
+}
+
+export type MiniDatInfo = {
+    id: string,
+    name: string,
+    description: string
+}

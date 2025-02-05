@@ -4,7 +4,7 @@ import useStorage from "../../hooks/storage";
 import { Card, Container, ProgressRoot, Text } from "@chakra-ui/react";
 import { ProgressBar, ProgressLabel } from "../../components/ui/progress";
 import { Task } from "../../utils/task";
-import { AnalyzeContext, Browser, CacheDat, DownloadDat, FileRecord, SteamAccount, VisitDat, Volume } from "../../utils/types";
+import { AnalyzeContext, Browser, CacheDat, DownloadDat, FileRecord, MiniDat, SteamAccount, VisitDat, Volume } from "../../utils/types";
 import PreloadBoxes from "../../components/preload/preload-boxes";
 import { getVersion } from '@tauri-apps/api/app';
 
@@ -97,6 +97,15 @@ const tasks: Task[] = [
         }
     },
     {
+        name: "Получение данных о использовании",
+        id: "collect_mini_dat",
+        worker: async () => {
+            const [set, ,] = useStorage();
+            const mini_dat: MiniDat[] = await invoke("collect_mini_dat");
+            await set<MiniDat[]>("mini_dat", mini_dat);
+        }
+    },
+    {
         name: "Идентификация устройства",
         id: "get_device_id",
         worker: async () => {
@@ -153,7 +162,7 @@ function PreloadMainPage() {
                             </Text>
 
                             <Text color="gray" fontWeight="normal" fontSize={14}>
-                                { version ? version : "..." }
+                                {version ? version : "..."}
                             </Text>
                         </div>
                     </Card.Title>
@@ -161,7 +170,7 @@ function PreloadMainPage() {
                 <Card.Footer>
                     <ProgressRoot size="lg" striped animated spaceY={1} className="flex-rows" value={completedTasks} max={tasks.length} variant="subtle" w="full" maxW="full">
                         <ProgressLabel color={"gray"} fontSize={12}>
-                            { currentTask ? currentTask.name : "Ожидание" }
+                            {currentTask ? currentTask.name : "Ожидание"}
                         </ProgressLabel>
                         <ProgressBar borderRadius={10} />
                     </ProgressRoot>
