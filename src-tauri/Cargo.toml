@@ -35,7 +35,7 @@ tauri-plugin-dialog = "2"
 tauri-plugin-clipboard-manager = "2"
 mac_address = "1.1.7"
 
-shellbags = { path = "../src-tauri/shellbags" }
+shellbags = { path = "../src-tauri/shellbags", version = "0.1.0" }
 
 [workspace]
 members = ["shellbags"]

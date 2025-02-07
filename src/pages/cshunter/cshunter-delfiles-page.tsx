@@ -40,7 +40,9 @@ export default function CSHunterDelFilesPage() {
     useEffect(() => {
         async function setup() {
             setIsLoading(true);
-            setFiles(await get<FileRecord[]>("journal_removes"));
+            const files = await get<FileRecord[]>("journal_removes");
+            const sortedFiles = files.sort((a, b) => b.timestamp - a.timestamp);
+            setFiles(sortedFiles);
             setIsLoading(false);
         };
 
