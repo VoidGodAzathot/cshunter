@@ -3,7 +3,7 @@ use std::{fmt::Debug, fs::File, io::Read, path::Path};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 
-use crate::utils::get_parallel_files;
+use crate::{emitter::global_emit, utils::get_parallel_files};
 
 use super::context::{AnalyzerContext, ItemContext};
 
@@ -38,6 +38,10 @@ impl Analyzer {
             if cfg!(dev) {
                 println!("{e:?}");
             }
+        }
+
+        if !name.eq("undefined") {
+            global_emit("task_status_update", &name.clone());
         }
 
         let mut file_map = || -> Option<File> {

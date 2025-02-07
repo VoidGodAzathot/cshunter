@@ -1,112 +1,105 @@
 export enum Flag {
-    SYSTEM,
-    NTFS
+  SYSTEM,
+  NTFS,
 }
 
 export type Volume = {
-    path: string,
-    free_space: number,
-    available_space: number,
-    total_space: number,
-    flags: Flag[],
-}
+  path: string;
+  free_space: number;
+  available_space: number;
+  total_space: number;
+  flags: Flag[];
+};
 
 export type FileRecord = {
-    name: string,
-    path: string | undefined,
-    timestamp: number,
-    reason: string,
-}
+  name: string;
+  path: string | undefined;
+  timestamp: number;
+  reason: string;
+};
 
 export type SteamAccount = {
-    id: number,
-    persona_name: string,
-    account_name: string,
-    timestamp: string,
-    most_recent: string,
-}
+  id: number;
+  persona_name: string;
+  account_name: string;
+  timestamp: string;
+  most_recent: string;
+};
 
 export enum Driver {
-    BLINK
+  BLINK,
 }
 
 export type Browser = {
-    id: string,
-    path: string,
-    driver: Driver,
-    support: boolean
-}
+  id: string;
+  path: string;
+  driver: Driver;
+  support: boolean;
+};
 
 export type DownloadDat = {
-    browser: string,
-    file: string,
-    url: string,
-    imestamp: number
-}
+  browser: string;
+  file: string;
+  url: string;
+  imestamp: number;
+};
 
 export type VisitDat = {
-    browser: string,
-    title: string,
-    url: string,
-    timestamp: number
-}
+  browser: string;
+  title: string;
+  url: string;
+  timestamp: number;
+};
 
 export type CacheDat = {
-    browser: string,
-    url: string
-}
+  browser: string;
+  url: string;
+};
 
 export type AnalyzeContext = {
-    items: ItemContext[]
-}
+  items: ItemContext[];
+};
 
 export type ItemContext = {
-    name: string,
-    path: string,
-    size: number,
-    crc32: number,
-}
+  name: string;
+  path: string;
+  size: number;
+  crc32: number;
+};
 
 export type Page = {
-    source: () => JSX.Element,
-    icon: JSX.Element,
-    name: string
-}
+  source: () => JSX.Element;
+  icon: JSX.Element;
+  name: string;
+};
 
 export type StorageUpdate = {
-    name: string
-}
-
-export type Tag = {
-    msg: string,
-    id: string,
-    desc: string,
-    color: "red" | "green" | "blue"
-}
+  name: string;
+};
 
 export type MiniDat = {
-    value: string,
-    id: string
-}
+  value: string;
+  id: string;
+};
 
 export type MiniDatInfo = {
-    id: string,
-    name: string,
-    description: string,
-    filtering: boolean,
-    stable: boolean
-}
+  id: string;
+  name: string;
+  description: string;
+  filtering: boolean;
+  stable: boolean;
+};
 
 export type ShellBagView = {
-    path: string,
-    name: string,
-    timestamp: number,
-    action: ShellBagViewAction,
-}
+  path: string;
+  name: string;
+  timestamp: number;
+  action: ShellBagViewAction;
+};
 
 export enum ShellBagViewAction {
-    DELETE,
-    MODIFY,
-    ACCESS,
-    CREATE,
+  DELETE,
+  MODIFY,
+  ACCESS,
+  CREATE,
 }
