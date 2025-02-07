@@ -30,7 +30,7 @@ export default function CSHunterDelFilesPage() {
 
     useEffect(() => {
         async function applyFilter() {
-            const filtered = await asyncFilter(files, async (file) => filterIsPresent(currentFilter, file));
+            const filtered = await asyncFilter(files, async (file) => await filterIsPresent(currentFilter, file));
             setCurrentFiles(filtered);
         };
 

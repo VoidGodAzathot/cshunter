@@ -24,7 +24,7 @@ export default function CSHunterBrowsersPage() {
     const dataTypes = createListCollection({ items: [{ label: "Кэш", value: "cache" }, { label: "Посещения", value: "visits" }, { label: "Загрузки", value: "downloads" }] })
 
     async function applyFilter() {
-        const response = browsersData ? (selectedDataType === "cache" ? await asyncFilter(browsersData.cache, async (item) => item.browser == selectedBrowser?.id && filterIsPresent(currentFilter, item)) : selectedDataType === "downloads" ? await asyncFilter(browsersData.downloads, async (item) => item.browser == selectedBrowser?.id && filterIsPresent(currentFilter, item)) : await asyncFilter(browsersData.visits, async (item) => item.browser == selectedBrowser?.id && filterIsPresent(currentFilter, item))) : [];
+        const response = browsersData ? (selectedDataType === "cache" ? await asyncFilter(browsersData.cache, async (item) => item.browser == selectedBrowser?.id && await filterIsPresent(currentFilter, item)) : selectedDataType === "downloads" ? await asyncFilter(browsersData.downloads, async (item) => item.browser == selectedBrowser?.id && await filterIsPresent(currentFilter, item)) : await asyncFilter(browsersData.visits, async (item) => item.browser == selectedBrowser?.id && await filterIsPresent(currentFilter, item))) : [];
         setCurrentData(response);
     }
 

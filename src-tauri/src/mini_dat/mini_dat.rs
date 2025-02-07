@@ -10,7 +10,9 @@ pub struct MiniDat {
 pub struct MiniDatInfo {
     pub id: &'static str,
     pub name: &'static str,
-    pub description: &'static str
+    pub description: &'static str,
+    pub stable: bool,
+    pub filtering: bool
 }
 
 pub trait MiniDatWrapper {

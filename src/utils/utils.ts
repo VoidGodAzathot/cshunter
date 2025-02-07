@@ -17,24 +17,27 @@ export function dateFromUnix(timestamp: number): string {
     return resultDate.toLocaleString();
 }
 
-export function filterIsPresent<T>(filter: string, data: T): boolean {
-    const filterValues = filter.split("||").map(item => item.trim().toLowerCase());
-    if (filterValues.length === 0 || filterValues[0].length === 0) return true;
+export function jsonToType<T>(value: string): T {
+    return JSON.parse(value) as T;
+}
 
-    const collectValues = (input: unknown): string[] => {
-        if (typeof input === "object" && input !== null) {
-            return Array.isArray(input) 
-                ? input.flatMap(collectValues)
-                : Object.values(input).flatMap(collectValues);
+export async function filterIsPresent<T>(filter: string, data: T): Promise<boolean> {
+    const filterWords = filter.split('||').map(word => word.trim().toLowerCase());
+
+    const checkValue = (value: any): boolean => {
+        if (value === null || value === undefined) return false;
+
+        if (typeof value === 'object') {
+            return Array.isArray(value)
+                ? value.some(item => checkValue(item))
+                : Object.values(value).some(nestedValue => checkValue(nestedValue));
         }
-        return [String(input).toLowerCase().trim()];
+
+        const stringValue = String(value).toLowerCase();
+        return filterWords.some(word => stringValue.includes(word));
     };
 
-    const dataValues = collectValues(data);
-    
-    return filterValues.some(filterValue => 
-        dataValues.some(dataValue => dataValue.includes(filterValue))
-    );
+    return checkValue(data);
 }
 
 export async function asyncFilter<T>(arr: T[], cb: (el: T) => Promise<boolean>): Promise<T[]> {

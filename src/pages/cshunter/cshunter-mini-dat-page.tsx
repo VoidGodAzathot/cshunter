@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import useStorage from "../../hooks/storage"
 import { MiniDat, MiniDatInfo } from "../../utils/types";
-import { Box, Center, Collapsible, Flex, Input, Spinner, Text, Highlight } from "@chakra-ui/react";
+import { Box, Center, Collapsible, Flex, Input, Spinner, Text, Highlight, Badge } from "@chakra-ui/react";
 import { invoke } from "@tauri-apps/api/core";
-import { filterIsPresent } from "../../utils/utils";
+import { asyncFilter, filterIsPresent } from "../../utils/utils";
+import ShellbagView from "../../components/mini_dat/shellbag-view";
 
 type MiniDatKey = {
     id: string,
     name: string,
-    desc: string
+    desc: string,
+    stable: boolean,
+    filtering: boolean
 }
 
 export default function CSHunterMiniDatPage() {
@@ -19,17 +22,21 @@ export default function CSHunterMiniDatPage() {
     const [finalMiniDat, setFinalMiniDat] = useState<Map<MiniDatKey, string[]>>(new Map());
 
     useEffect(() => {
-        const filtered: Map<MiniDatKey, string[]> = new Map<MiniDatKey, string[]>();
-        const keysArray = Array.from(sortedMiniDat.keys());
-        for (let i = 0; i < keysArray.length; i++) {
-            const key = keysArray[i];
-            const values = sortedMiniDat.get(key);
-            if (values) {
-                let v = values.filter((value) => filterIsPresent(currentFilter, value));
-                filtered.set(key, v);
+        async function setup() {
+            const filtered: Map<MiniDatKey, string[]> = new Map<MiniDatKey, string[]>();
+            const keysArray = Array.from(sortedMiniDat.keys());
+            for (let i = 0; i < keysArray.length; i++) {
+                const key = keysArray[i];
+                const values = sortedMiniDat.get(key);
+                if (values) {
+                    let v = key.filtering ? await asyncFilter(values, async (value) => await filterIsPresent(currentFilter, value)) : values;
+                    filtered.set(key, v);
+                }
             }
-        }
-        setFinalMiniDat(filtered);
+            setFinalMiniDat(filtered);
+        };
+
+        setup();
     }, [currentFilter, sortedMiniDat]);
 
     useEffect(() => {
@@ -48,7 +55,7 @@ export default function CSHunterMiniDatPage() {
                 } else {
                     const val: string[] = [dat.value];
                     const meta: MiniDatInfo = await invoke("get_mini_dat_info", { id: dat.id });
-                    map.set({ id: meta.id, name: meta.name, desc: meta.description }, val);
+                    map.set({ id: meta.id, name: meta.name, desc: meta.description, stable: meta.stable, filtering: meta.filtering }, val);
                 }
             }
             setSortedMiniDat(map);
@@ -75,9 +82,19 @@ export default function CSHunterMiniDatPage() {
                                             <Collapsible.Trigger width="full">
                                                 <Flex gap={5} justify="space-between" cursor="pointer" borderWidth="1px" borderRadius="20px" padding={5} alignItems="center">
                                                     <Flex direction="column" alignItems="start">
-                                                        <Text fontSize="14px">
-                                                            {key.name}
-                                                        </Text>
+                                                        <Flex align="center" gap={1} spaceX={1}>
+                                                            <Text fontSize="14px">
+                                                                {key.name}
+                                                            </Text>
+                                                            <Flex gap={1}>
+                                                                {
+                                                                    key.stable ? <></> : <Badge colorPalette="red" borderRadius="20px">нестабильный</Badge>
+                                                                }
+                                                                {
+                                                                    key.filtering ? <></> : <Badge colorPalette="red" borderRadius="20px">фильтры не применяются</Badge>
+                                                                }
+                                                            </Flex>
+                                                        </Flex>
                                                         <Text
                                                             textAlign="left"
                                                             whiteSpace="normal"
@@ -93,16 +110,18 @@ export default function CSHunterMiniDatPage() {
                                                 </Flex>
                                             </Collapsible.Trigger>
                                             <Collapsible.Content paddingTop={3}>
-                                                <Flex direction="column" padding={5} borderWidth="1px" borderRadius="20px">
+                                                <Flex gap={1} direction="column" padding={5} borderWidth="1px" borderRadius="20px">
                                                     {
-                                                        finalMiniDat.get(key)?.map((item, i) => (<Text key={i} textAlign="left"
-                                                            whiteSpace="normal"
-                                                            fontSize="12px"
-                                                            wordBreak="break-word" color="gray">
-                                                            <Highlight styles={{ background: "white", height: "fit", color: "black" }} query={currentFilter.split("||").map((item) => item.trim())}>
-                                                                {item}
-                                                            </Highlight>
-                                                        </Text>))
+                                                        finalMiniDat.get(key)?.map((item, i) => key.id == "shellbag" ?
+                                                            <ShellbagView key={i} filter={currentFilter} item={item} />
+                                                            : (<Text key={i} textAlign="left"
+                                                                whiteSpace="normal"
+                                                                fontSize="12px"
+                                                                wordBreak="break-word" color="gray">
+                                                                <Highlight styles={{ background: "white", height: "fit", color: "black" }} query={currentFilter.split("||").map((item) => item.trim())}>
+                                                                    {item}
+                                                                </Highlight>
+                                                            </Text>))
                                                     }
                                                 </Flex>
                                             </Collapsible.Content>

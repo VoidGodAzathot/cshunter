@@ -92,5 +92,21 @@ export type MiniDat = {
 export type MiniDatInfo = {
     id: string,
     name: string,
-    description: string
+    description: string,
+    filtering: boolean,
+    stable: boolean
+}
+
+export type ShellBagView = {
+    path: string,
+    name: string,
+    timestamp: number,
+    action: ShellBagViewAction,
+}
+
+export enum ShellBagViewAction {
+    DELETE,
+    MODIFY,
+    ACCESS,
+    CREATE,
 }

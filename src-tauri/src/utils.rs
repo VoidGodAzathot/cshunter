@@ -3,6 +3,7 @@ use std::{
     os::windows::{ffi::OsStringExt, process::CommandExt},
     path::PathBuf,
     process::Command,
+    ptr::{addr_of_mut, null_mut},
     thread,
     time::Duration,
 };
@@ -13,9 +14,14 @@ use rayon::iter::{ParallelBridge, ParallelIterator};
 use regex::Regex;
 use tauri::{AppHandle, Manager};
 use windows::{
-    core::{GUID, PCWSTR},
+    core::{GUID, PCWSTR, PWSTR},
     Win32::{
-        Foundation::HANDLE,
+        Foundation::{CloseHandle, HANDLE},
+        Security::{
+            Authorization::ConvertSidToStringSidW, GetTokenInformation, TokenUser, TOKEN_QUERY,
+            TOKEN_USER,
+        },
+        System::Threading::{GetCurrentProcess, OpenProcessToken},
         UI::Shell::{SHGetKnownFolderPath, KNOWN_FOLDER_FLAG},
     },
 };
@@ -161,7 +167,7 @@ pub fn parse_guid_from_string(guid_str: &str) -> Result<GUID, String> {
 
 pub fn extract_guid(input: &str) -> Option<String> {
     let re = Regex::new(r"(?i)\{([A-F0-9\-]{36})\}").unwrap();
-    
+
     if let Some(captures) = re.captures(input) {
         Some(captures.get(1).map_or("", |m| m.as_str()).to_string())
     } else {
@@ -170,7 +176,9 @@ pub fn extract_guid(input: &str) -> Option<String> {
 }
 
 pub fn replace_guid_in_path(input: &str, guid: &str, guid_str: &str) -> Option<String> {
-    Some(String::from(input.replace(&format!("{{{}}}", guid).to_string(), guid_str)))
+    Some(String::from(
+        input.replace(&format!("{{{}}}", guid).to_string(), guid_str),
+    ))
 }
 
 pub fn known_folder_in_path(value: String) -> String {
@@ -195,4 +203,57 @@ pub fn known_folder_in_path(value: String) -> String {
     }
 
     value
+}
+
+pub fn get_current_username_in_sid() -> Option<String> {
+    unsafe {
+        let process = GetCurrentProcess();
+
+        let mut token_handle = HANDLE::default();
+        let _ = OpenProcessToken(process, TOKEN_QUERY, addr_of_mut!(token_handle));
+
+        let mut return_length = 0;
+        let _ = GetTokenInformation(
+            token_handle,
+            TokenUser,
+            Some(null_mut()),
+            0,
+            &mut return_length,
+        );
+
+        let mut buffer = vec![0u8; return_length as usize];
+        if GetTokenInformation(
+            token_handle,
+            TokenUser,
+            Some(buffer.as_mut_ptr() as *mut _),
+            return_length,
+            &mut return_length,
+        )
+        .is_err()
+        {
+            let _ = CloseHandle(token_handle);
+            return None;
+        }
+
+        let token_user = &*(buffer.as_ptr() as *const TOKEN_USER);
+
+        let mut string_sid: PWSTR = PWSTR(std::ptr::null_mut());
+        if ConvertSidToStringSidW(token_user.User.Sid, &mut string_sid).is_err() {
+            let _ = CloseHandle(token_handle);
+            return None;
+        }
+
+        let sid = {
+            let mut len = 0;
+            while *string_sid.0.offset(len) != 0 {
+                len += 1;
+            }
+
+            let slice = std::slice::from_raw_parts(string_sid.0, len as usize);
+            String::from_utf16_lossy(slice)
+        };
+
+        let _ = CloseHandle(token_handle);
+        Some(sid)
+    }
 }
