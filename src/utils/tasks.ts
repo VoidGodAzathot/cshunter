@@ -1,4 +1,5 @@
 import useStorage from "../hooks/storage";
+import { GITHUB_PACKAGE_URL } from "./consts";
 import {
   AnalyzeContext,
   Browser,
@@ -37,6 +38,8 @@ export const Tasks: Task[] = [
       await set<string[]>("all_files", files);
       const vmd_verdict: boolean = await invoke("is_vm");
       await set<boolean>("vmd_verdict", vmd_verdict);
+      const github_version: string = await invoke("get_github_version", { url: GITHUB_PACKAGE_URL });
+      await set<string>("github_version", github_version);
     },
   },
   {
@@ -83,7 +86,9 @@ export const Tasks: Task[] = [
       const accounts: SteamAccount[] = await invoke(
         "get_steam_accounts_history"
       );
+      const avatarCache: string[] = await invoke("get_steam_avatar_cache");
       await set<SteamAccount[]>("steam_accounts", accounts);
+      await set<string[]>("steam_avatar_cache", avatarCache);
     },
   },
   {

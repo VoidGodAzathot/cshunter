@@ -12,6 +12,12 @@ pub fn get_steam_accounts_history() -> Vec<SteamAccount> {
 }
 
 #[tauri::command]
+pub fn get_steam_avatar_cache() -> Vec<String> {
+    let steam = Steam::new();
+    steam.get_avatar_cache()
+}
+
+#[tauri::command]
 pub async fn is_vac_present(account: SteamAccount) -> bool {
     account.is_vac().await
 }

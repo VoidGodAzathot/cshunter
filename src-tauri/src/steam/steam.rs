@@ -1,4 +1,8 @@
-use std::{collections::HashMap, fs::File, io::Read};
+use std::{
+    collections::HashMap,
+    fs::{self, File},
+    io::Read,
+};
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -90,6 +94,51 @@ impl Steam {
         }
 
         None
+    }
+
+    pub fn get_avatar_cache(&self) -> Vec<String> {
+        if self.location.is_some() {
+            match fs::read_dir(format!(
+                "{}\\config\\avatarcache",
+                self.location.clone().unwrap()
+            )) {
+                Ok(dir) => {
+                    let mut response = vec![];
+
+                    for val in dir {
+                        match val {
+                            Ok(val) => {
+                                let name =
+                                    val.file_name().to_str().unwrap_or("undefined").to_string();
+                                
+                                if !name.eq("undefined") && name.contains(".") {
+                                    let id_and_ext = name.split(".").collect::<Vec<&str>>();
+                                    if id_and_ext.len() == 2 {
+                                        response.push(id_and_ext[0].to_string());
+                                    }
+                                }
+                            }
+
+                            Err(e) => {
+                                if cfg!(dev) {
+                                    println!("{e:?}");
+                                }
+                            }
+                        }
+                    }
+
+                    return response;
+                }
+
+                Err(e) => {
+                    if cfg!(dev) {
+                        println!("{e:?}");
+                    }
+                }
+            }
+        }
+
+        vec![]
     }
 
     pub fn get_history_accounts(&self) -> Vec<SteamAccount> {

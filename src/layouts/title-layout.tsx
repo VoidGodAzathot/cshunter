@@ -39,10 +39,16 @@ function TitleLayout({ children }: { children: JSX.Element }) {
 
   useEffect(() => {
     async function setup() {
+      const localVersion: string = await getVersion();
+      const githubVersion: string = await get<string>("github_version");
       const is_vm = await get<boolean>("vmd_verdict");
 
       if (is_vm) {
         setTags((bef) => tryApplyTag(bef, "vmd_verdict"));
+      }
+
+      if (githubVersion != null && githubVersion.length != 0 && localVersion !== githubVersion) {
+        setTags((bef) => tryApplyTag(bef, "no_last_version"));
       }
 
       setVersion(await getVersion());
@@ -59,7 +65,7 @@ function TitleLayout({ children }: { children: JSX.Element }) {
     fetchWindow();
     setup();
     setupListen(async (n) => {
-      if (n === "vmd_verdict") await setup();
+      if (n === "vmd_verdict" || n === "github_version") await setup();
     });
   }, []);
 

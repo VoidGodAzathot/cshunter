@@ -12,6 +12,12 @@ export const Tags: Tag[] = [
     id: "vmd_verdict",
     color: "red",
   },
+  {
+    msg: "bad version",
+    desc: "Вы используете не последнюю версию программы.",
+    id: "no_last_version",
+    color: "blue",
+  }
 ];
 
 export function tryApplyTag(arr: Tag[], id: string): Tag[] {

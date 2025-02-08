@@ -16,6 +16,7 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 
 type WrappedSteamAccount = {
   source: SteamAccount;
+  inCache: boolean;
   vac: boolean;
 };
 
@@ -29,6 +30,7 @@ export default function CSHunterSteamAccPage() {
 
     async function setup() {
       const accs = await get<SteamAccount[]>("steam_accounts");
+      const cache = await get<string[]>("steam_avatar_cache");
       let response: WrappedSteamAccount[] = [];
 
       for (const [_, acc] of accs.entries()) {
@@ -36,6 +38,7 @@ export default function CSHunterSteamAccPage() {
 
         response.push({
           source: acc,
+          inCache: cache.filter((val) => val === acc.id.toString()).length > 0,
           vac: vac,
         });
       }
@@ -163,6 +166,26 @@ export default function CSHunterSteamAccPage() {
                       </Badge>
                     ) : (
                       <></>
+                    )}
+
+                    {!account.inCache ? (
+                      <Badge
+                        borderRadius="20px"
+                        width="fit"
+                        height="fit"
+                        colorPalette="red"
+                      >
+                        неавторизованный
+                      </Badge>
+                    ) : (
+                      <Badge
+                        borderRadius="20px"
+                        width="fit"
+                        height="fit"
+                        colorPalette="green"
+                      >
+                        авторизованный
+                      </Badge>
                     )}
                   </Flex>
                 </Flex>

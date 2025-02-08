@@ -12,6 +12,7 @@ use jwalk::WalkDir;
 use rand::{distr::Alphanumeric, Rng};
 use rayon::iter::{ParallelBridge, ParallelIterator};
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use windows::{
     core::{GUID, PCWSTR, PWSTR},
@@ -25,6 +26,11 @@ use windows::{
         UI::Shell::{SHGetKnownFolderPath, KNOWN_FOLDER_FLAG},
     },
 };
+
+#[derive(Deserialize, Serialize)]
+pub struct Package {
+    version: String,
+}
 
 pub fn string_to_pcwstr(str: String) -> PCWSTR {
     PCWSTR(
@@ -256,4 +262,48 @@ pub fn get_current_username_in_sid() -> Option<String> {
         let _ = CloseHandle(token_handle);
         Some(sid)
     }
+}
+
+pub async fn reqwest_raw_to_t<T>(url: String) -> Option<T>
+where
+    T: for<'a> Deserialize<'a> + Serialize,
+{
+    match reqwest::get(url).await {
+        Ok(response) => {
+            let raw_text = response.text().await;
+
+            if raw_text.is_ok() {
+                match serde_json::from_str::<T>(&raw_text.unwrap()) {
+                    Ok(t) => {
+                        return Some(t);
+                    }
+
+                    Err(e) => {
+                        if cfg!(dev) {
+                            println!("{e:?}");
+                        }
+                    }
+                };
+            }
+        }
+
+        Err(e) => {
+            if cfg!(dev) {
+                println!("{e:?}");
+            }
+        }
+    }
+
+    None
+}
+
+#[tauri::command(async)]
+pub async fn get_github_version(url: String) -> String {
+    let package = reqwest_raw_to_t::<Package>(url).await;
+
+    if let Some(package) = package {
+        return package.version;
+    }
+
+    String::new()
 }

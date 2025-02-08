@@ -1,6 +1,6 @@
 [package]
 name = "cshunter"
-version = "1.0.0"
+version = "1.0.1"
 description = "Сheating software detection applications."
 authors = ["mentola", "vierimuru"]
 edition = "2021"

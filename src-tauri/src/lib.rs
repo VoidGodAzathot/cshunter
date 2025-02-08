@@ -10,11 +10,11 @@ use browser::{
 use device_id::{get_device_id, get_ip_addr};
 use emitter::{EventMessage, GLOBAL_EVENT_SENDER};
 use mini_dat::{collect_mini_dat, get_mini_dat_info};
-use steam::{get_steam_accounts_history, is_vac_present};
+use steam::{get_steam_accounts_history, get_steam_avatar_cache, is_vac_present};
 use storage::{get_all_storage, get_storage, set_storage, Storage};
 use tauri::{Emitter, Manager, WindowEvent};
 use usn_journal::{get_all_volumes, get_usn_journal_records};
-use utils::{get_parallel_files, open_explorer, open_url, run_main_window_and_close_preload};
+use utils::{get_github_version, get_parallel_files, open_explorer, open_url, run_main_window_and_close_preload};
 use vmdetect::is_vm;
 
 pub mod analyzer;
@@ -48,7 +48,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .setup(move |app| {
+        .setup(move |app: &mut tauri::App| {
             app.manage(Mutex::new(Storage::default()));
             
             let app_handle = app.handle().clone();
@@ -74,6 +74,7 @@ pub fn run() {
             get_ip_addr,
             get_parallel_files,
             get_steam_accounts_history,
+            get_steam_avatar_cache,
             is_vac_present,
             get_supported_browsers,
             get_browser_cache_data,
@@ -91,7 +92,8 @@ pub fn run() {
             open_url,
             is_vm,
             collect_mini_dat,
-            get_mini_dat_info
+            get_mini_dat_info,
+            get_github_version
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
