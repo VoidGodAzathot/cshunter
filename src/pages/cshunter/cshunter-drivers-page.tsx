@@ -11,8 +11,6 @@ import {
   Text,
   Highlight,
   Badge,
-  Tooltip,
-  Button,
 } from "@chakra-ui/react";
 import {
   PaginationItems,
@@ -21,7 +19,6 @@ import {
   PaginationRoot,
 } from "../../components/ui/pagination";
 import { asyncFilter, filterIsPresent } from "../../utils/utils";
-import { Icon } from "@iconify/react/dist/iconify.js";
 
 export default function CSHunterDriversPage() {
   const [, get, ,] = useStorage();
