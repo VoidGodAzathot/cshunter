@@ -3,7 +3,7 @@ use std::{ffi::OsString, iter::once, os::windows::ffi::OsStrExt, path::Path, sli
 
 use mac_address::get_mac_address;
 use windows::{
-    core::{Error, GUID, PCWSTR},
+    core::{GUID, PCWSTR},
     Win32::{
         Devices::DeviceAndDriverInstallation::{SetupDiEnumDeviceInfo, SetupDiGetClassDevsW, SetupDiGetDeviceRegistryPropertyW, DIGCF_ALLCLASSES, DIGCF_PRESENT, SPDRP_HARDWAREID, SP_DEVINFO_DATA}, Foundation::{CloseHandle, ERROR_MORE_DATA, GENERIC_READ, HWND}, Storage::FileSystem::{CreateFileW, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ, OPEN_EXISTING}, System::{
             Registry::{RegOpenKeyExW, HKEY_LOCAL_MACHINE, KEY_READ},
@@ -263,7 +263,7 @@ impl DetectMethod for ServicesMethod {
                 );
 
                 if let Err(err) = result {
-                    if err.code() != Error::from(ERROR_MORE_DATA).code() {
+                    if err.code() != ERROR_MORE_DATA.to_hresult() {
                         return (false, 0);
                     }
                 }

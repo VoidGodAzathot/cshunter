@@ -103,3 +103,10 @@ export enum ShellBagViewAction {
   ACCESS,
   CREATE,
 }
+
+export type DriverInfo = {
+  name: string,
+  description: string,
+  path: string,
+  trust: boolean,
+};

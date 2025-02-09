@@ -8,6 +8,7 @@ use browser::{
     get_supported_browsers,
 };
 use device_id::{get_device_id, get_ip_addr};
+use drivers::get_drivers_info;
 use emitter::{EventMessage, GLOBAL_EVENT_SENDER};
 use mini_dat::{collect_mini_dat, get_mini_dat_info};
 use steam::{get_steam_accounts_history, get_steam_avatar_cache, is_vac_present};
@@ -27,6 +28,7 @@ pub mod storage;
 pub mod usn_journal;
 pub mod utils;
 pub mod vmdetect;
+pub mod drivers;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -93,7 +95,8 @@ pub fn run() {
             is_vm,
             collect_mini_dat,
             get_mini_dat_info,
-            get_github_version
+            get_github_version,
+            get_drivers_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -60,7 +60,7 @@ pub const MINI_DAT_META: [MiniDatInfo; 8] = [
         description: "Содержит информацию о используемых пользователем папок, известный как Shellbag.",
         filtering: false,
         stable: false
-    },
+    }
 ];
 
 #[tauri::command]
