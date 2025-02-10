@@ -541,10 +541,8 @@ checksum = "7e36cc9d416881d2e24f9a963be5fb1cd90966419ac844274161d10488b3e825"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
- "js-sys",
  "num-traits",
  "serde",
- "wasm-bindgen",
  "windows-targets 0.52.6",
 ]
 
@@ -782,7 +780,7 @@ dependencies = [
 
 [[package]]
 name = "cshunter"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "crc32fast",
  "hex",
@@ -797,7 +795,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "shellbags",
  "sqlite",
  "tauri",
  "tauri-build",
@@ -3966,17 +3963,6 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
-]
-
-[[package]]
-name = "shellbags"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
- "uuid",
- "windows 0.59.0",
 ]
 
 [[package]]

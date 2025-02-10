@@ -1,6 +1,4 @@
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
-use shellbags::{parse_bag_with_timeline, ShellBagAction};
 use std::{
     ffi::OsString,
     io::{Bytes, Read},
@@ -36,7 +34,6 @@ pub struct Radar {}
 pub struct AppCompatCache {}
 pub struct Bam {}
 pub struct AppSwitched {}
-pub struct Shellbag {}
 
 impl MiniDatWrapper for SevenZip {
     fn new_instance(value: String) -> MiniDat {
@@ -77,28 +74,6 @@ impl MiniDatEmployee<MiniDat> for SevenZip {
         }
 
         vec![]
-    }
-}
-
-impl MiniDatWrapper for Shellbag {
-    fn new_instance(value: String) -> MiniDat {
-        MiniDat {
-            value: value,
-            id: "shellbag",
-        }
-    }
-}
-
-impl MiniDatEmployee<MiniDat> for Shellbag {
-    fn run() -> Vec<MiniDat> {
-        read_shellbag()
-            .iter()
-            .map(|item| {
-                Shellbag::new_instance(
-                    serde_json::to_string(item).unwrap_or(String::from("undefined")),
-                )
-            })
-            .collect()
     }
 }
 
@@ -476,69 +451,6 @@ impl MiniDatEmployee<MiniDat> for Bam {
 
         vec![]
     }
-}
-
-pub fn read_shellbag() -> Vec<ShellBagView> {
-    let mut response = parse_bag_with_timeline()
-        .par_iter()
-        .map(|item| ShellBagView {
-            name: String::from(
-                item.folder
-                    .clone()
-                    .split("\\")
-                    .last()
-                    .unwrap_or("undefined"),
-            ),
-            path: replace_start_path(item.folder.clone()),
-            timestamp: item.numeric_time,
-            action: (if item.folder.contains("?") {
-                ShellBagViewAction::DELETE
-            } else {
-                if item.action == ShellBagAction::Access {
-                    ShellBagViewAction::ACCESS
-                } else if item.action == ShellBagAction::Created {
-                    ShellBagViewAction::CREATE
-                } else {
-                    ShellBagViewAction::MODIFY
-                }
-            }),
-        })
-        .collect::<Vec<ShellBagView>>();
-
-    remove_duplicates::<ShellBagView>(&mut response, |item1, item2| {
-        item1.path == item2.path && item1.action == item2.action
-    });
-
-    response
-}
-
-fn remove_duplicates<T>(vec: &mut Vec<T>, filter: fn(&T, &T) -> bool)
-where
-    T: Clone,
-{
-    let mut unique = Vec::new();
-    vec.retain(|item| {
-        if unique.iter().any(|unique_item| filter(unique_item, item)) {
-            false
-        } else {
-            unique.push(item.clone());
-            true
-        }
-    });
-}
-
-fn replace_start_path(path: String) -> String {
-    path
-        .replace("\\LIBRARIES\\", "")
-        .replace("\\MY_DOCUMENTS\\", "")
-        .replace("\\NETWORK\\", "")
-        .replace("\\RECYCLE_BIN\\", "")
-        .replace("\\INTERNET_EXPLORER\\", "")
-        .replace("\\UNKNOWN\\", "")
-        .replace("\\MY_GAMES\\", "")
-        .replace("\\MY_COMPUTER\\", "")
-        .replace("\\USERS\\", "")
-        .replace(":\\\\", ":\\")
 }
 
 pub fn replace_device_path_with_drive_letter(path: &str) -> String {
