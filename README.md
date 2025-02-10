@@ -43,15 +43,9 @@ CSHunter использует **уникальные алгоритмы анал
 
 ---
 
-## 🖼️ Скриншоты  
+## 🖼️ Скриншот
 
 ![image](https://github.com/user-attachments/assets/fbd60fea-740a-4529-af23-cf3637a90de6)  
-![image](https://github.com/user-attachments/assets/16d2521e-6bd6-48b6-bdf4-2ab7a7a2b35d)  
-![image](https://github.com/user-attachments/assets/5a49f7c5-1f43-4e87-948f-7b1405808176)  
-![image](https://github.com/user-attachments/assets/b311f331-fc20-4008-aeaa-8879570d8752)  
-![image](https://github.com/user-attachments/assets/c672f2f4-0466-4fa9-adba-a85a00311f51)  
-![image](https://github.com/user-attachments/assets/9467949b-64a8-44ca-9384-93607a0c101c)  
-![image](https://github.com/user-attachments/assets/b4c9f8ed-c318-486f-8dde-f667079cea0c)  
 
 ---
 
