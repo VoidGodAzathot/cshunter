@@ -64,4 +64,4 @@ CSHunter использует **уникальные алгоритмы анал
 Если у тебя есть вопросы, предложения или ты нашел баг, свяжись с нами:  
 
 📂 **GitHub**: [VoidGodAzathot](https://github.com/VoidGodAzathot)  
-✉️ **Telegram** [CSHunter.exe](t.me/cshunterexe)
+✉️ **Telegram** [CSHunter.exe](https://t.me/cshunterexe/)
