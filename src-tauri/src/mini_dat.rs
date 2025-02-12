@@ -1,10 +1,10 @@
 use mini_dat::{MiniDat, MiniDatEmployee, MiniDatInfo};
-use registry_md::{AppCompatCache, AppSwitched, Bam, Radar, SevenZip, UserAssist, WinRar};
+use registry_md::{AppCompatCache, AppSwitched, Bam, Radar, SevenZip, ShellBag, UserAssist, WinRar};
 
 pub mod mini_dat;
 pub mod registry_md;
 
-pub const MINI_DAT_META: [MiniDatInfo; 7] = [
+pub const MINI_DAT_META: [MiniDatInfo; 8] = [
     MiniDatInfo {
         id: "radar",
         name: "Отсканированные файлы",
@@ -53,6 +53,13 @@ pub const MINI_DAT_META: [MiniDatInfo; 7] = [
         description: "Хранится статистика использования функции переключения между приложениями.",
         filtering: true,
         stable: true
+    },
+    MiniDatInfo {
+        id: "shellbag",
+        name: "Папки, с которыми было взаимодействие",
+        description: "Имена папок, с которыми было взаимодействие.",
+        filtering: true,
+        stable: true
     }
 ];
 
@@ -60,13 +67,14 @@ pub const MINI_DAT_META: [MiniDatInfo; 7] = [
 pub fn collect_mini_dat() -> Vec<MiniDat> {
     let mut employees: Vec<MiniDat> = vec![];
 
-    employees.append(&mut WinRar::run());
-    employees.append(&mut SevenZip::run());
-    employees.append(&mut UserAssist::run());
-    employees.append(&mut Radar::run());
-    employees.append(&mut AppCompatCache::run());
-    employees.append(&mut Bam::run());
-    employees.append(&mut AppSwitched::run());
+    employees.extend(WinRar::run());
+    employees.extend(SevenZip::run());
+    employees.extend(UserAssist::run());
+    employees.extend(Radar::run());
+    employees.extend(AppCompatCache::run());
+    employees.extend(Bam::run());
+    employees.extend(AppSwitched::run());
+    employees.extend(ShellBag::run());
 
     employees
 }

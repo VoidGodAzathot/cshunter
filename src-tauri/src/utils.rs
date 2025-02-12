@@ -10,7 +10,6 @@ use std::{
 
 use jwalk::WalkDir;
 use rand::{distr::Alphanumeric, Rng};
-use rayon::iter::{ParallelBridge, ParallelIterator};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
@@ -64,10 +63,9 @@ pub fn rot13(text: &str) -> String {
 pub fn get_parallel_files(start_path: String) -> Vec<String> {
     WalkDir::new(start_path)
         .into_iter()
-        .par_bridge()
-        .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file())
-        .map(|e| e.path().to_string_lossy().into_owned())
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type.is_file())
+        .map(|entry| entry.path().to_string_lossy().into_owned())
         .collect()
 }
 

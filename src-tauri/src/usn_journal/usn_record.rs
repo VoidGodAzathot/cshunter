@@ -27,7 +27,7 @@ use windows::Win32::{
     },
 };
 
-use super::volume::Volume;
+use super::{usn_journal::SafeHandle, volume::Volume};
 
 #[derive(Clone)]
 pub enum Version {
@@ -74,11 +74,11 @@ pub struct FileRecord {
 }
 
 impl FileRecord {
-    pub fn new(usn_record: UsnRecord, volume: Volume, handle: HANDLE) -> Self {
+    pub fn new(usn_record: UsnRecord, volume: Volume, handle: SafeHandle) -> Self {
         Self {
             reason: Self::get_reason_str(usn_record.clone().reason),
             name: usn_record.clone().file_name,
-            path: Self::get_file_path(usn_record.clone(), volume, handle),
+            path: Self::get_file_path(usn_record.clone(), volume, handle.0),
             timestamp: usn_record.clone().timestamp,
         }
     }

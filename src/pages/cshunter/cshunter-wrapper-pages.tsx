@@ -7,7 +7,6 @@ import CSHunterAnalyzerPage from "./cshunter-analyzer-page";
 import CSHunterDelFilesPage from "./cshunter-delfiles-page";
 import CSHunterSteamAccPage from "./cshunter-steamacc-page";
 import CSHunterMiniDatPage from "./cshunter-mini-dat-page";
-import CSHunterDriversPage from "./cshunter-drivers-page";
 
 const pages: Page[] = [
   {
@@ -38,14 +37,7 @@ const pages: Page[] = [
       <Icon width="30px" height="30px" icon="fluent:delete-16-filled"></Icon>
     ),
     source: CSHunterDelFilesPage,
-  },
-  {
-    name: "Драйверы",
-    icon: (
-      <Icon width="30px" height="30px" icon="material-symbols:license-rounded"></Icon>
-    ),
-    source: CSHunterDriversPage,
-  },
+  }
 ];
 
 export default function CSHunterWrapperPages() {

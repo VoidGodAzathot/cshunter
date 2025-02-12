@@ -14,7 +14,7 @@ export const Tags: Tag[] = [
   },
   {
     msg: "bad version",
-    desc: "Вы используете не последнюю версию программы.",
+    desc: "Вы используете неверную версию программы.",
     id: "no_last_version",
     color: "blue",
   }

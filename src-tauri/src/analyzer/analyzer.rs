@@ -1,5 +1,11 @@
-use std::{fmt::Debug, fs::File, io::Read, path::Path};
+use std::{
+    fmt::Debug,
+    fs::File,
+    io::{BufReader, Read},
+    path::Path,
+};
 
+use memmap2::Mmap;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 
@@ -40,34 +46,42 @@ impl Analyzer {
             }
         }
 
-        if !name.eq("undefined") {
-            global_emit("task_status_update", &name.clone());
+        if name != "undefined" {
+            global_emit("task_status_update", &name);
         }
 
-        let mut file_map = || -> Option<File> {
-            let file = File::open(&path).inspect_err(log_error).ok()?;
-            let file_size = file.metadata().inspect_err(log_error).ok()?.len();
+        let file = File::open(&path).map_err(|e| log_error(&e)).ok()?;
+        let metadata = file.metadata().map_err(|e| log_error(&e)).ok()?;
+        let file_size = metadata.len();
 
-            if file_size > 128 * 1024 * 1024 {
-                return None;
+        if file_size > 96 * 1024 * 1024 {
+            return None;
+        }
+
+        let crc32 = match unsafe { Mmap::map(&file) } {
+            Ok(mmap) => crc32fast::hash(&mmap),
+            Err(e) => {
+                log_error(&e);
+                let file = File::open(&path).map_err(|e| log_error(&e)).ok()?;
+                let mut reader = BufReader::new(file);
+                let mut hasher = crc32fast::Hasher::new();
+                let mut buffer = [0u8; 8192];
+                loop {
+                    let bytes_read = reader.read(&mut buffer).map_err(|e| log_error(&e)).ok()?;
+                    if bytes_read == 0 {
+                        break;
+                    }
+                    hasher.update(&buffer[..bytes_read]);
+                }
+                hasher.finalize()
             }
-
-            Some(file)
-        }()?;
-
-        let mut buf: Vec<u8> = vec![];
-        let _ = file_map.read_to_end(&mut buf);
-        let pe_crc = crc32fast::hash(buf.as_slice());
+        };
 
         Some(ItemContext {
             name,
             path: if with_path { path } else { String::new() },
-            size: if file_map.metadata().is_ok() {
-                file_map.metadata().unwrap().len()
-            } else {
-                0
-            },
-            crc32: pe_crc,
+            size: file_size,
+            crc32,
         })
     }
 

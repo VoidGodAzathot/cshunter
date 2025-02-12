@@ -5,9 +5,9 @@ import {
   Browser,
   CacheDat,
   DownloadDat,
-  DriverInfo,
   FileRecord,
   MiniDat,
+  ShellBagDat,
   SteamAccount,
   VisitDat,
   Volume,
@@ -146,15 +146,8 @@ export const Tasks: Task[] = [
       const [set, ,] = useStorage();
       const mini_dat: MiniDat[] = await invoke("collect_mini_dat");
       await set<MiniDat[]>("mini_dat", mini_dat);
-    },
-  },
-  {
-    name: "Получение данных о драйверах",
-    id: "collect_drivers_info",
-    worker: async () => {
-      const [set, ,] = useStorage();
-      const drivers_info: DriverInfo[] = await invoke("get_drivers_info");
-      await set<DriverInfo[]>("drivers_info", drivers_info);
+      const shellbag: ShellBagDat[] = await invoke("read_shellbag");
+      await set<ShellBagDat[]>("shellbag", shellbag);
     },
   },
   {

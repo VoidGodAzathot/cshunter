@@ -7,7 +7,10 @@ use std::{
 use windows::Win32::Storage::FileSystem::QueryDosDeviceW;
 use windows_registry::{Type, CURRENT_USER, LOCAL_MACHINE};
 
-use crate::utils::{get_current_username_in_sid, known_folder_in_path, rot13, string_to_pcwstr};
+use crate::{
+    shellbag::shellbag,
+    utils::{get_current_username_in_sid, known_folder_in_path, rot13, string_to_pcwstr},
+};
 
 use super::mini_dat::{MiniDat, MiniDatEmployee, MiniDatWrapper};
 
@@ -34,6 +37,7 @@ pub struct Radar {}
 pub struct AppCompatCache {}
 pub struct Bam {}
 pub struct AppSwitched {}
+pub struct ShellBag {}
 
 impl MiniDatWrapper for SevenZip {
     fn new_instance(value: String) -> MiniDat {
@@ -73,6 +77,21 @@ impl MiniDatEmployee<MiniDat> for SevenZip {
             }
         }
 
+        vec![]
+    }
+}
+
+impl MiniDatWrapper for ShellBag {
+    fn new_instance(value: String) -> MiniDat {
+        MiniDat {
+            value: value,
+            id: "shellbag",
+        }
+    }
+}
+
+impl MiniDatEmployee<MiniDat> for ShellBag {
+    fn run() -> Vec<MiniDat> {
         vec![]
     }
 }
@@ -501,7 +520,7 @@ fn get_drive_letter(device_path: &str) -> Option<String> {
     None
 }
 
-fn bytes_to_vec_u8(bytes: Bytes<&[u8]>) -> Vec<u8> {
+pub fn bytes_to_vec_u8(bytes: Bytes<&[u8]>) -> Vec<u8> {
     bytes.filter_map(|byte| byte.ok()).collect()
 }
 

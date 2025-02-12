@@ -104,9 +104,8 @@ export enum ShellBagViewAction {
   CREATE,
 }
 
-export type DriverInfo = {
-  name: string,
-  description: string,
-  path: string,
-  trust: boolean,
-};
+export type ShellBagDat = {
+  value: string,
+  num: number,
+  timestamp: number
+}

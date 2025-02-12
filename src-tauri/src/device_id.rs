@@ -6,16 +6,16 @@ pub mod net_id;
 pub mod shuffle;
 
 #[tauri::command]
-pub fn get_device_id() -> String {
+pub fn get_device_id() -> Option<String> {
     match DeviceId::generate() {
         Ok(device_id) => {
-            return device_id.to_string();
+            return Some(device_id.to_string());
         }
 
         Err(_) => {}
     };
 
-    String::from("undefined")
+    None
 }
 
 #[tauri::command(async)]

@@ -2,7 +2,7 @@ use std::ptr::null_mut;
 
 use serde::{Deserialize, Serialize};
 use windows::Win32::{
-    Foundation::{BOOL, HANDLE, MAX_PATH},
+    Foundation::{BOOL, MAX_PATH},
     Storage::FileSystem::{
         CreateFileW, GetDiskFreeSpaceExW, GetLogicalDriveStringsW, GetVolumeInformationW,
         FILE_FLAG_BACKUP_SEMANTICS, FILE_GENERIC_READ, FILE_SHARE_DELETE, FILE_SHARE_READ,
@@ -12,6 +12,8 @@ use windows::Win32::{
 };
 
 use crate::utils::string_to_pcwstr;
+
+use super::usn_journal::SafeHandle;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Flag {
@@ -117,7 +119,7 @@ impl Volume {
     }
 
     // обязательно закрыть после использования CloseHandle
-    pub unsafe fn get_handle(&self) -> Option<HANDLE> {
+    pub unsafe fn get_handle(&self) -> Option<SafeHandle> {
         match CreateFileW(
             string_to_pcwstr(format!("\\\\.\\{}:", self.path.replace(":\\", ""))),
             FILE_GENERIC_READ.0,
@@ -128,7 +130,7 @@ impl Volume {
             None,
         ) {
             Ok(handle) => {
-                return Some(handle);
+                return Some(SafeHandle(handle));
             }
 
             Err(e) => {
