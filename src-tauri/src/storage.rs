@@ -1,48 +1,74 @@
-use std::{collections::HashMap, sync::Mutex};
-use serde::{Deserialize, Serialize};
+use dashmap::DashMap;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Manager, Window};
-
-#[derive(Serialize, Deserialize)]
-struct StorageItem {
-    name: String,
-    value: serde_json::Value,
-}
 
 #[derive(Clone, Serialize, Deserialize)]
 struct StorageUpdate {
     name: String,
 }
 
+pub struct Storage {
+    pub internal: DashMap<String, serde_json::Value>,
+}
+
+impl Storage {
+    pub fn new() -> Self {
+        Self {
+            internal: DashMap::new(),
+        }
+    }
+}
+
 #[tauri::command]
 pub fn set_storage(app_handle: AppHandle, name: String, value: serde_json::Value, window: Window) {
-    let binding = app_handle.state::<Mutex<Storage>>();
-    let mut storage = binding.lock().unwrap();
+    let storage = app_handle.state::<Arc<Storage>>();
     storage.internal.insert(name.clone(), value);
-    let _ = window.emit("storage_update", StorageUpdate { name: name });
+    let _ = window.emit("storage_update", StorageUpdate { name });
 }
 
 #[tauri::command]
 pub fn get_storage(app_handle: AppHandle, name: String) -> Option<serde_json::Value> {
-    let binding = app_handle.state::<Mutex<Storage>>();
-    let storage = binding.lock().unwrap();
-    storage.internal.get(&name).cloned()
+    let storage = app_handle.state::<Arc<Storage>>();
+    storage
+        .internal
+        .get(&name)
+        .map(|entry| entry.value().clone())
 }
 
 #[tauri::command]
 pub fn get_all_storage(app_handle: AppHandle) -> HashMap<String, serde_json::Value> {
-    let binding = app_handle.state::<Mutex<Storage>>();
-    let storage = binding.lock().unwrap();
-    storage.internal.clone()
+    let storage = app_handle.state::<Arc<Storage>>();
+    storage
+        .internal
+        .iter()
+        .map(|entry| (entry.key().clone(), entry.value().clone()))
+        .collect()
 }
 
-pub struct Storage {
-    internal: HashMap<String, serde_json::Value>,
+pub fn set_storage_i(app_handle: &AppHandle, name: String, value: serde_json::Value) {
+    let storage = app_handle.state::<Arc<Storage>>();
+    storage.internal.insert(name.clone(), value);
 }
 
-impl Default for Storage {
-    fn default() -> Self {
-        Self {
-            internal: HashMap::new(),
-        }
-    }
+pub fn get_storage_as<T>(app_handle: &AppHandle, name: &str) -> Option<T>
+where
+    T: DeserializeOwned,
+{
+    app_handle
+        .state::<Arc<Storage>>()
+        .internal
+        .get(name)
+        .and_then(
+            |entry| match serde_json::from_value(entry.value().clone()) {
+                Ok(val) => Some(val),
+                Err(e) => {
+                    if cfg!(dev) {
+                        println!("{e:?}");
+                    }
+                    None
+                }
+            },
+        )
 }

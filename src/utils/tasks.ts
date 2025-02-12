@@ -39,7 +39,9 @@ export const Tasks: Task[] = [
       await set<string[]>("all_files", files);
       const vmd_verdict: boolean = await invoke("is_vm");
       await set<boolean>("vmd_verdict", vmd_verdict);
-      const github_version: string = await invoke("get_github_version", { url: GITHUB_PACKAGE_URL });
+      const github_version: string = await invoke("get_github_version", {
+        url: GITHUB_PACKAGE_URL,
+      });
       await set<string>("github_version", github_version);
     },
   },
@@ -148,6 +150,20 @@ export const Tasks: Task[] = [
       await set<MiniDat[]>("mini_dat", mini_dat);
       const shellbag: ShellBagDat[] = await invoke("read_shellbag");
       await set<ShellBagDat[]>("shellbag", shellbag);
+    },
+  },
+  {
+    name: "Дамп строк модулей процесса игры",
+    id: "create_dump_modules_strings",
+    worker: async () => {
+      await invoke("collect_modules_strings_from_cs2");
+    },
+  },
+  {
+    name: "Дамп строк процесса игры",
+    id: "create_dump_strings",
+    worker: async () => {
+      await invoke("collect_strings_from_cs2");
     },
   },
   {

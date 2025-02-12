@@ -122,7 +122,7 @@ pub fn decode_bag_mru_entry_name(bag_mru: &mut BagMRU) {
         bag_mru.short_name = Some(String::from_utf8_lossy(&bag_mru.entry[3..6]).to_string());
     } else if entry_type == 0x31 {
         // file
-        let ext_offset = (bag_mru.entry[entry_size as usize - 2] as u16
+        let ext_offset: usize = (bag_mru.entry[entry_size as usize - 2] as u16
             | ((bag_mru.entry[entry_size as usize - 1] as u16) << 8))
             as usize;
 

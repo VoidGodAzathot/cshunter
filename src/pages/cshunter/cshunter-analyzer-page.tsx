@@ -43,12 +43,16 @@ export default function CSHunterAnalyzerPage() {
   const [currentMatches, setCurrentMatches] = useState<Match[]>([]);
   const pageSize = 100;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(currentMatches.length / pageSize);
+  const [paginatedData, setPaginatedData] = useState<Match[]>([]);
+  const [totalPages, setTotalPages] = useState<number>(0);
 
-  const paginatedData = currentMatches.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  useEffect(() => {
+    setTotalPages(Math.ceil(currentMatches.length / pageSize));
+
+    setPaginatedData(
+      currentMatches.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    );
+  }, [currentMatches]);
 
   useEffect(() => {
     setCurrentPage(1);

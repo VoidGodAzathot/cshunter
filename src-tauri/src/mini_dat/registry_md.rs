@@ -8,7 +8,7 @@ use windows::Win32::Storage::FileSystem::QueryDosDeviceW;
 use windows_registry::{Type, CURRENT_USER, LOCAL_MACHINE};
 
 use crate::{
-    shellbag::shellbag,
+    shellbag::shellbag::collect_shell_bag,
     utils::{get_current_username_in_sid, known_folder_in_path, rot13, string_to_pcwstr},
 };
 
@@ -92,7 +92,10 @@ impl MiniDatWrapper for ShellBag {
 
 impl MiniDatEmployee<MiniDat> for ShellBag {
     fn run() -> Vec<MiniDat> {
-        vec![]
+        collect_shell_bag()
+            .iter()
+            .map(|item| ShellBag::new_instance(item.path.clone()))
+            .collect()
     }
 }
 

@@ -105,7 +105,18 @@ export enum ShellBagViewAction {
 }
 
 export type ShellBagDat = {
-  value: string,
-  num: number,
-  timestamp: number
-}
+  value: string;
+  num: number;
+  timestamp: number;
+};
+
+export type Strings = {
+  address: string;
+  values: string[];
+};
+
+export type ModuleStrings = {
+  address: string;
+  values: string[];
+  module: string;
+};
