@@ -1,4 +1,13 @@
-import { Box, Button, Center, Flex, HStack, Input, Stat, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Center,
+  Flex,
+  HStack,
+  Input,
+  Stat,
+  Text,
+} from "@chakra-ui/react";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useEffect, useState } from "react";
 import {
@@ -13,22 +22,21 @@ import { invoke } from "@tauri-apps/api/core";
 export default function CSHunterDumpPage() {
   const [, get, ,] = useStorage();
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isMatching, setIsMatching] = useState<boolean>(false);
   const [currentFilter, setCurrentFilter] = useState<string>("");
   const [countModulesStrings, setCountModulesStrings] = useState<number>(0);
   const [countStrings, setCountStrings] = useState<number>(0);
   const [matches, setMatches] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [paginatedData, setPaginatedData] = useState<string[]>([]);
-  const [totalPages, setTotalPages] = useState<number>(0);
   const pageSize = 1000;
+  let paginatedData = [];
+  let totalPages = 0;
 
-  useEffect(() => {
-    setTotalPages(Math.ceil(matches.length / pageSize));
-
-    setPaginatedData(
-      matches.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    );
-  }, [matches]);
+  totalPages = Math.ceil(matches.length / pageSize);
+  paginatedData = matches.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -117,17 +125,17 @@ export default function CSHunterDumpPage() {
                     textAlign="start"
                   />
                   <Button
-                    disabled={isLoading}
+                    disabled={isLoading || isMatching}
                     onClick={async () => {
                       if (currentFilter.length == 0) {
                         return;
                       }
-                      setIsLoading(true);
+                      setIsMatching(true);
                       const matches_: string[] = await invoke("find_strings", {
                         filter: currentFilter,
                       });
                       setMatches(matches_);
-                      setIsLoading(false);
+                      setIsMatching(false);
                     }}
                     variant="surface"
                     borderRadius={50}

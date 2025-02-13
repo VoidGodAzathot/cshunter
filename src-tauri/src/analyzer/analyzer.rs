@@ -6,7 +6,7 @@ use std::{
 };
 
 use memmap2::Mmap;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 
 use crate::{emitter::global_emit, utils::get_parallel_files};
@@ -87,7 +87,7 @@ impl Analyzer {
 
     pub fn generate_context_from_folder(start_path: String) -> Option<AnalyzerContext> {
         let items: Vec<_> = get_parallel_files(start_path)
-            .into_par_iter()
+            .par_iter()
             .filter_map(|file| {
                 let path = Path::new(&file);
 
@@ -102,7 +102,7 @@ impl Analyzer {
                     .map(|s| s.to_owned())
                     .unwrap_or_else(|| "undefined".into());
 
-                Self::create_file_context(file_name, file, false)
+                Self::create_file_context(file_name, file.to_string(), false)
             })
             .collect();
 
@@ -110,10 +110,8 @@ impl Analyzer {
     }
 
     pub fn generate_context(files: Vec<String>) -> Option<AnalyzerContext> {
-        use rayon::prelude::*;
-
         let items: Vec<_> = files
-            .into_par_iter()
+            .par_iter()
             .filter_map(|file| {
                 let path = Path::new(&file);
 
@@ -128,7 +126,7 @@ impl Analyzer {
                     .map(|s| s.to_owned())
                     .unwrap_or_else(|| "undefined".to_string());
 
-                Self::create_file_context(file_name, file, true)
+                Self::create_file_context(file_name, file.to_string(), true)
             })
             .collect();
 

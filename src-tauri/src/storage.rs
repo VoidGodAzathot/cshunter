@@ -47,12 +47,12 @@ pub fn get_all_storage(app_handle: AppHandle) -> HashMap<String, serde_json::Val
         .collect()
 }
 
-pub fn set_storage_i(app_handle: &AppHandle, name: String, value: serde_json::Value) {
+pub fn set_storage_value(app_handle: &AppHandle, name: String, value: serde_json::Value) {
     let storage = app_handle.state::<Arc<Storage>>();
     storage.internal.insert(name.clone(), value);
 }
 
-pub fn get_storage_as<T>(app_handle: &AppHandle, name: &str) -> Option<T>
+pub fn get_storage_value<T>(app_handle: &AppHandle, name: &str) -> Option<T>
 where
     T: DeserializeOwned,
 {

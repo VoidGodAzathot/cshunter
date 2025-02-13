@@ -241,7 +241,7 @@ fn is_valid_string(s: &str) -> bool {
     if letter_count == 0 || letter_count < s.len() / 3 {
         return false;
     }
-    
+
     true
 }
 

@@ -247,13 +247,13 @@ impl UsnJournal {
             }
         }
 
-        let unique_data: HashSet<_> = response.into_iter().collect();
+        let unique_data: HashSet<_> = response.par_iter().collect();
 
         let unique_data = unique_data
             .par_iter()
             .map(|record| {
                 FileRecord::new(
-                    record.clone(),
+                    record.to_owned().clone(),
                     self.volume.clone(),
                     self.volume_handle.clone().unwrap(),
                 )
