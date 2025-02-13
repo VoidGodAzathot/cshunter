@@ -43,9 +43,11 @@ export default function CSHunterAnalyzerPage() {
   const [currentMatches, setCurrentMatches] = useState<Match[]>([]);
   const pageSize = 100;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(currentMatches.length / pageSize);
+  let paginatedData = [];
+  let totalPages = 0;
 
-  const paginatedData = currentMatches.slice(
+  totalPages = Math.ceil(currentMatches.length / pageSize);
+  paginatedData = currentMatches.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );

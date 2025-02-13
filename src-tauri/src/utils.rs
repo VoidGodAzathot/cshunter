@@ -10,7 +10,7 @@ use std::{
 
 use jwalk::WalkDir;
 use rand::{distr::Alphanumeric, Rng};
-use rayon::iter::{ParallelBridge, ParallelIterator};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
@@ -64,10 +64,9 @@ pub fn rot13(text: &str) -> String {
 pub fn get_parallel_files(start_path: String) -> Vec<String> {
     WalkDir::new(start_path)
         .into_iter()
-        .par_bridge()
-        .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file())
-        .map(|e| e.path().to_string_lossy().into_owned())
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type.is_file())
+        .map(|entry| entry.path().to_string_lossy().into_owned())
         .collect()
 }
 
@@ -268,7 +267,7 @@ pub async fn reqwest_raw_to_t<T>(url: String) -> Option<T>
 where
     T: for<'a> Deserialize<'a> + Serialize,
 {
-    match reqwest::get(url).await {
+    match reqwest::get(url.clone()).await {
         Ok(response) => {
             let raw_text = response.text().await;
 
@@ -306,4 +305,15 @@ pub async fn get_github_version(url: String) -> String {
     }
 
     String::new()
+}
+
+pub fn filter_is_present(filter: &str, data: &str) -> bool {
+    let filter_words: Vec<String> = filter
+        .split("||")
+        .map(|word| word.trim().to_lowercase())
+        .collect();
+    let lower_data = data.to_lowercase();
+    filter_words
+        .par_iter()
+        .any(|word| lower_data.contains(word))
 }

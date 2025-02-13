@@ -5,9 +5,9 @@ import {
   Browser,
   CacheDat,
   DownloadDat,
-  DriverInfo,
   FileRecord,
   MiniDat,
+  ShellBagDat,
   SteamAccount,
   VisitDat,
   Volume,
@@ -39,7 +39,9 @@ export const Tasks: Task[] = [
       await set<string[]>("all_files", files);
       const vmd_verdict: boolean = await invoke("is_vm");
       await set<boolean>("vmd_verdict", vmd_verdict);
-      const github_version: string = await invoke("get_github_version", { url: GITHUB_PACKAGE_URL });
+      const github_version: string = await invoke("get_github_version", {
+        url: GITHUB_PACKAGE_URL,
+      });
       await set<string>("github_version", github_version);
     },
   },
@@ -146,15 +148,22 @@ export const Tasks: Task[] = [
       const [set, ,] = useStorage();
       const mini_dat: MiniDat[] = await invoke("collect_mini_dat");
       await set<MiniDat[]>("mini_dat", mini_dat);
+      const shellbag: ShellBagDat[] = await invoke("read_shellbag");
+      await set<ShellBagDat[]>("shellbag", shellbag);
     },
   },
   {
-    name: "Получение данных о драйверах",
-    id: "collect_drivers_info",
+    name: "Дамп строк модулей процесса игры",
+    id: "create_dump_modules_strings",
     worker: async () => {
-      const [set, ,] = useStorage();
-      const drivers_info: DriverInfo[] = await invoke("get_drivers_info");
-      await set<DriverInfo[]>("drivers_info", drivers_info);
+      await invoke("collect_modules_strings_from_cs2");
+    },
+  },
+  {
+    name: "Дамп строк процесса игры",
+    id: "create_dump_strings",
+    worker: async () => {
+      await invoke("collect_strings_from_cs2");
     },
   },
   {

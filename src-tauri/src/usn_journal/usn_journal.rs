@@ -8,6 +8,7 @@ use std::{
     usize,
 };
 
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use windows::{
     Wdk::Storage::FileSystem::MFT_ENUM_DATA,
     Win32::{
@@ -23,6 +24,12 @@ use windows::{
     },
 };
 
+#[derive(Copy, Clone)]
+pub struct SafeHandle(pub HANDLE);
+
+unsafe impl Send for SafeHandle {}
+unsafe impl Sync for SafeHandle {}
+
 use super::{
     usn_record::{FileIdentifier, FileRecord, UsnRecord, Version},
     volume::Volume,
@@ -30,7 +37,7 @@ use super::{
 
 pub struct UsnJournal {
     pub volume: Volume,
-    volume_handle: Option<HANDLE>,
+    volume_handle: Option<SafeHandle>,
     journal_data: USN_JOURNAL_DATA_V2,
     journal_data_size: u32,
 }
@@ -38,9 +45,9 @@ pub struct UsnJournal {
 impl Drop for UsnJournal {
     fn drop(&mut self) {
         if self.volume_handle.is_some() {
-            if !self.volume_handle.unwrap().is_invalid() {
+            if !self.volume_handle.unwrap().0.is_invalid() {
                 unsafe {
-                    let _ = CloseHandle(self.volume_handle.unwrap());
+                    let _ = CloseHandle(self.volume_handle.unwrap().0);
                 }
             }
         }
@@ -69,7 +76,7 @@ impl UsnJournal {
     pub fn new(volume: Volume) -> Self {
         Self {
             volume: volume.clone(),
-            volume_handle: Some(HANDLE(null_mut())),
+            volume_handle: Some(SafeHandle(HANDLE(null_mut()))),
             journal_data: unsafe { zeroed() }, // временно заполняем до вызова init'a
             journal_data_size: 0,
         }
@@ -80,13 +87,13 @@ impl UsnJournal {
             self.volume_handle = self.volume.clone().get_handle();
         };
 
-        if self.volume_handle.is_none() || self.volume_handle.unwrap().is_invalid() {
+        if self.volume_handle.is_none() || self.volume_handle.unwrap().0.is_invalid() {
             return false;
         }
 
         unsafe {
             let _ = DeviceIoControl(
-                self.volume_handle.unwrap(),
+                self.volume_handle.unwrap().0,
                 FSCTL_QUERY_USN_JOURNAL, // получаем текущий журнал; для создания журнала используется FSCTL_CREATE_USN_JOURNAL
                 Some(null_mut()),        // нам не нужно отправлять параметры запроса
                 0,
@@ -124,7 +131,7 @@ impl UsnJournal {
 
         match unsafe {
             DeviceIoControl(
-                self.volume_handle.unwrap(),
+                self.volume_handle.unwrap().0,
                 FSCTL_READ_USN_JOURNAL,
                 Some(addr_of_mut!(data) as *mut c_void),
                 size_of::<READ_USN_JOURNAL_DATA_V1>() as u32,
@@ -164,7 +171,7 @@ impl UsnJournal {
 
         match unsafe {
             DeviceIoControl(
-                self.volume_handle.unwrap(),
+                self.volume_handle.unwrap().0,
                 FSCTL_ENUM_USN_DATA,
                 Some(addr_of_mut!(enum_data) as *mut c_void),
                 size_of::<MFT_ENUM_DATA>() as u32,
@@ -196,15 +203,18 @@ impl UsnJournal {
             }
         }
 
-        let files = files.iter().map(|record| {
-            FileRecord::new(
-                record.clone(),
-                self.volume.clone(),
-                self.volume_handle.clone().unwrap(),
-            )
-        });
+        let files = files
+            .par_iter()
+            .map(|record| {
+                FileRecord::new(
+                    record.clone(),
+                    self.volume.clone(),
+                    self.volume_handle.clone().unwrap(),
+                )
+            })
+            .collect();
 
-        Vec::from_iter(files)
+        files
     }
 
     pub fn read(&mut self, reason_mask: u32) -> Vec<FileRecord> {
@@ -237,17 +247,20 @@ impl UsnJournal {
             }
         }
 
-        let unique_data: HashSet<_> = response.into_iter().collect();
+        let unique_data: HashSet<_> = response.par_iter().collect();
 
-        let unique_data = unique_data.iter().map(|record| {
-            FileRecord::new(
-                record.clone(),
-                self.volume.clone(),
-                self.volume_handle.clone().unwrap(),
-            )
-        });
+        let unique_data = unique_data
+            .par_iter()
+            .map(|record| {
+                FileRecord::new(
+                    record.to_owned().clone(),
+                    self.volume.clone(),
+                    self.volume_handle.clone().unwrap(),
+                )
+            })
+            .collect();
 
-        Vec::from_iter(unique_data)
+        unique_data
     }
 
     unsafe fn read_usn_union(

@@ -1,18 +1,26 @@
 use core::arch::asm;
-use std::{ffi::OsString, iter::once, os::windows::ffi::OsStrExt, path::Path, slice::from_raw_parts_mut};
+use std::{
+    ffi::OsString, iter::once, os::windows::ffi::OsStrExt, path::Path, slice::from_raw_parts_mut,
+};
 
 use mac_address::get_mac_address;
 use windows::{
     core::{GUID, PCWSTR},
     Win32::{
-        Devices::DeviceAndDriverInstallation::{SetupDiEnumDeviceInfo, SetupDiGetClassDevsW, SetupDiGetDeviceRegistryPropertyW, DIGCF_ALLCLASSES, DIGCF_PRESENT, SPDRP_HARDWAREID, SP_DEVINFO_DATA}, Foundation::{CloseHandle, ERROR_MORE_DATA, GENERIC_READ, HWND}, Storage::FileSystem::{CreateFileW, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ, OPEN_EXISTING}, System::{
+        Devices::DeviceAndDriverInstallation::{
+            SetupDiEnumDeviceInfo, SetupDiGetClassDevsW, SetupDiGetDeviceRegistryPropertyW,
+            DIGCF_ALLCLASSES, DIGCF_PRESENT, SPDRP_HARDWAREID, SP_DEVINFO_DATA,
+        },
+        Foundation::{CloseHandle, ERROR_MORE_DATA, GENERIC_READ, HWND},
+        Storage::FileSystem::{CreateFileW, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ, OPEN_EXISTING},
+        System::{
             Registry::{RegOpenKeyExW, HKEY_LOCAL_MACHINE, KEY_READ},
             Services::{
                 CloseServiceHandle, EnumServicesStatusExW, OpenSCManagerW,
                 ENUM_SERVICE_STATUS_PROCESSW, SC_ENUM_PROCESS_INFO, SC_MANAGER_CONNECT,
                 SC_MANAGER_ENUMERATE_SERVICE, SERVICE_STATE_ALL, SERVICE_WIN32,
             },
-        }
+        },
     },
 };
 
@@ -52,13 +60,9 @@ impl DetectMethod for HardwareMethod {
         let class_guid = GUID::zeroed();
         let flags = DIGCF_PRESENT | DIGCF_ALLCLASSES;
 
-        let device_info_set = 
-            SetupDiGetClassDevsW(
-                Some(&class_guid), 
-                None, 
-                Some(hwnd), 
-                flags).unwrap();
-        
+        let device_info_set =
+            SetupDiGetClassDevsW(Some(&class_guid), None, Some(hwnd), flags).unwrap();
+
         let mut device_info_data = SP_DEVINFO_DATA {
             cbSize: size_of::<SP_DEVINFO_DATA>() as u32,
             ..Default::default()
@@ -78,10 +82,12 @@ impl DetectMethod for HardwareMethod {
                 Some(1024 as *mut u32),
             );
 
-            let hardware_id = String::from_utf16_lossy(&buffer).trim().to_lowercase().to_string();
-            
-            if hardware_id.contains("vmware") 
-                || hardware_id.contains("vbox") {
+            let hardware_id = String::from_utf16_lossy(&buffer)
+                .trim()
+                .to_lowercase()
+                .to_string();
+
+            if hardware_id.contains("vmware") || hardware_id.contains("vbox") {
                 return (true, 1);
             }
 
@@ -470,27 +476,29 @@ impl VMDetector {
         VMDetector {}
     }
 
-    pub unsafe fn is_vm(&self) -> bool {
-        let hyper_visor_method = VMDetectWrapper::<HyperVisorMethod>::new();
-        let vmware_brand_method = VMDetectWrapper::<VMWareBrandMethod>::new();
-        let services_method = VMDetectWrapper::<ServicesMethod>::new();
-        let registry_method = VMDetectWrapper::<RegistryMethod>::new();
-        let display_device_method = VMDetectWrapper::<VMDisplayDeviceMethod>::new();
-        let mac_address_method = VMDetectWrapper::<MacAddressMethod>::new();
-        let virtual_box_handle_method = VMDetectWrapper::<VirtualBoxHandleMethod>::new();
-        let vm_files_method = VMDetectWrapper::<VMFilesMethod>::new();
-        let hardware_method = VMDetectWrapper::<HardwareMethod>::new();
+    pub fn is_vm(&self) -> bool {
+        unsafe {
+            let hyper_visor_method = VMDetectWrapper::<HyperVisorMethod>::new();
+            let vmware_brand_method = VMDetectWrapper::<VMWareBrandMethod>::new();
+            let services_method = VMDetectWrapper::<ServicesMethod>::new();
+            let registry_method = VMDetectWrapper::<RegistryMethod>::new();
+            let display_device_method = VMDetectWrapper::<VMDisplayDeviceMethod>::new();
+            let mac_address_method = VMDetectWrapper::<MacAddressMethod>::new();
+            let virtual_box_handle_method = VMDetectWrapper::<VirtualBoxHandleMethod>::new();
+            let vm_files_method = VMDetectWrapper::<VMFilesMethod>::new();
+            let hardware_method = VMDetectWrapper::<HardwareMethod>::new();
 
-        let score = vmware_brand_method.score()
-            + mac_address_method.score()
-            + services_method.score()
-            + hyper_visor_method.score()
-            + display_device_method.score()
-            + registry_method.score()
-            + virtual_box_handle_method.score()
-            + vm_files_method.score()
-            + hardware_method.score();
+            let score = vmware_brand_method.score()
+                + mac_address_method.score()
+                + services_method.score()
+                + hyper_visor_method.score()
+                + display_device_method.score()
+                + registry_method.score()
+                + virtual_box_handle_method.score()
+                + vm_files_method.score()
+                + hardware_method.score();
 
-        score > 2
+            score > 2
+        }
     }
 }

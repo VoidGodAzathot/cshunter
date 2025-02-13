@@ -1,4 +1,7 @@
-use std::{sync::{mpsc, Mutex}, thread};
+use std::{
+    sync::{mpsc, Arc},
+    thread,
+};
 
 use analyzer::{
     create_analyzer_context, create_analyzer_context_from_url, generate_context, save_context,
@@ -8,14 +11,20 @@ use browser::{
     get_supported_browsers,
 };
 use device_id::{get_device_id, get_ip_addr};
-use drivers::get_drivers_info;
 use emitter::{EventMessage, GLOBAL_EVENT_SENDER};
 use mini_dat::{collect_mini_dat, get_mini_dat_info};
+use process::{
+    collect_modules_strings_from_cs2, collect_strings_from_cs2, find_strings,
+    process::enable_debug_privilege,
+};
 use steam::{get_steam_accounts_history, get_steam_avatar_cache, is_vac_present};
 use storage::{get_all_storage, get_storage, set_storage, Storage};
 use tauri::{Emitter, Manager, WindowEvent};
 use usn_journal::{get_all_volumes, get_usn_journal_records};
-use utils::{get_github_version, get_parallel_files, open_explorer, open_url, run_main_window_and_close_preload};
+use utils::{
+    get_github_version, get_parallel_files, open_explorer, open_url,
+    run_main_window_and_close_preload,
+};
 use vmdetect::is_vm;
 
 pub mod analyzer;
@@ -23,12 +32,13 @@ pub mod browser;
 pub mod device_id;
 pub mod emitter;
 pub mod mini_dat;
+pub mod process;
+pub mod shellbag;
 pub mod steam;
 pub mod storage;
 pub mod usn_journal;
 pub mod utils;
 pub mod vmdetect;
-pub mod drivers;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -50,9 +60,8 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .manage(Arc::new(Storage::new()))
         .setup(move |app: &mut tauri::App| {
-            app.manage(Mutex::new(Storage::default()));
-            
             let app_handle = app.handle().clone();
 
             thread::spawn(move || {
@@ -66,6 +75,8 @@ pub fn run() {
                     }
                 }
             });
+
+            enable_debug_privilege();
 
             Ok(())
         })
@@ -96,7 +107,9 @@ pub fn run() {
             collect_mini_dat,
             get_mini_dat_info,
             get_github_version,
-            get_drivers_info
+            collect_strings_from_cs2,
+            collect_modules_strings_from_cs2,
+            find_strings
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

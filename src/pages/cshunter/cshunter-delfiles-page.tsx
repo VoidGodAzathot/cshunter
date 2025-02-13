@@ -27,9 +27,11 @@ export default function CSHunterDelFilesPage() {
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [currentFiles, setCurrentFiles] = useState<FileRecord[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(currentFiles.length / pageSize);
+  let paginatedData = [];
+  let totalPages = 0;
 
-  const paginatedData = currentFiles.slice(
+  totalPages = Math.ceil(currentFiles.length / pageSize);
+  paginatedData = currentFiles.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );

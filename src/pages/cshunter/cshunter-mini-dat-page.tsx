@@ -14,7 +14,6 @@ import {
 } from "@chakra-ui/react";
 import { invoke } from "@tauri-apps/api/core";
 import { asyncFilter, filterIsPresent } from "../../utils/utils";
-import ShellbagView from "../../components/mini_dat/shellbag-view";
 
 type MiniDatKey = {
   id: string;
@@ -48,9 +47,9 @@ export default function CSHunterMiniDatPage() {
         if (values) {
           let v = key.filtering
             ? await asyncFilter(
-                values,
-                async (value) => await filterIsPresent(currentFilter, value)
-              )
+              values,
+              async (value) => await filterIsPresent(currentFilter, value)
+            )
             : values;
           filtered.set(key, v);
         }
@@ -196,35 +195,29 @@ export default function CSHunterMiniDatPage() {
                       borderRadius="20px"
                     >
                       {finalMiniDat.get(key)?.map((item, i) =>
-                        key.id == "shellbag" ? (
-                          <ShellbagView
-                            key={i}
-                            filter={currentFilter}
-                            item={item}
-                          />
-                        ) : (
-                          <Text
-                            key={i}
-                            textAlign="left"
-                            whiteSpace="normal"
-                            fontSize="12px"
-                            wordBreak="break-word"
-                            color="gray"
+                      (
+                        <Text
+                          key={i}
+                          textAlign="left"
+                          whiteSpace="normal"
+                          fontSize="12px"
+                          wordBreak="break-word"
+                          color="gray"
+                        >
+                          <Highlight
+                            styles={{
+                              background: "white",
+                              height: "fit",
+                              color: "black",
+                            }}
+                            query={currentFilter
+                              .split("||")
+                              .map((item) => item.trim())}
                           >
-                            <Highlight
-                              styles={{
-                                background: "white",
-                                height: "fit",
-                                color: "black",
-                              }}
-                              query={currentFilter
-                                .split("||")
-                                .map((item) => item.trim())}
-                            >
-                              {item}
-                            </Highlight>
-                          </Text>
-                        )
+                            {item}
+                          </Highlight>
+                        </Text>
+                      )
                       )}
                     </Flex>
                   </Collapsible.Content>

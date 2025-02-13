@@ -17,22 +17,6 @@ export function dateFromUnix(timestamp: number): string {
   return resultDate.toLocaleString();
 }
 
-export function jsonToType<T>(value: string): T {
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new TypeError("Входное значение должно быть непустой строкой.");
-  }
-
-  try {
-    return JSON.parse(value) as T;
-  } catch (error) {
-    throw new SyntaxError(
-      `Ошибка парсинга JSON: ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
-  }
-}
-
 export async function filterIsPresent<T>(
   filter: string,
   data: T
