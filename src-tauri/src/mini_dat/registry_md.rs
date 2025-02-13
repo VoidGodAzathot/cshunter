@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use std::{
     ffi::OsString,
     io::{Bytes, Read},
@@ -13,22 +12,6 @@ use crate::{
 };
 
 use super::mini_dat::{MiniDat, MiniDatEmployee, MiniDatWrapper};
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ShellBagView {
-    pub path: String,
-    pub name: String,
-    pub timestamp: i64,
-    pub action: ShellBagViewAction,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum ShellBagViewAction {
-    DELETE,
-    MODIFY,
-    ACCESS,
-    CREATE,
-}
 
 pub struct SevenZip {}
 pub struct WinRar {}
