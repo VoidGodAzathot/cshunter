@@ -56,7 +56,7 @@ CSHunter использует **уникальные алгоритмы чтен
 git clone https://github.com/VoidGodAzathot/CSHunter.git
 cd ./CSHunter
 npm i // если не установлены пакеты
-npm run tauri dev
+npm run tauri build
 ```
 
 ## 📌 Контакты  
