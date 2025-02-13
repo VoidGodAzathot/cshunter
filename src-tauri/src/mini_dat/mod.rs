@@ -1,10 +1,12 @@
 use mini_dat::{MiniDat, MiniDatEmployee, MiniDatInfo};
-use registry_md::{AppCompatCache, AppSwitched, Bam, Radar, SevenZip, ShellBag, UserAssist, WinRar};
+use registry_md::{
+    AppCompatCache, AppSwitched, Bam, Radar, SevenZip, ShellBag, UserAssist, WinRar, SRUM,
+};
 
 pub mod mini_dat;
 pub mod registry_md;
 
-pub const MINI_DAT_META: [MiniDatInfo; 8] = [
+pub const MINI_DAT_META: [MiniDatInfo; 9] = [
     MiniDatInfo {
         id: "radar",
         name: "Отсканированные файлы",
@@ -60,6 +62,13 @@ pub const MINI_DAT_META: [MiniDatInfo; 8] = [
         description: "Имена папок, с которыми было взаимодействие.",
         filtering: true,
         stable: true
+    },
+    MiniDatInfo {
+        id: "srum",
+        name: "Монитор использования системных ресурсов",
+        description: "Исполняемые файлы, которые запускались в данной системе.",
+        filtering: true,
+        stable: true
     }
 ];
 
@@ -75,6 +84,7 @@ pub fn collect_mini_dat() -> Vec<MiniDat> {
     employees.extend(Bam::run());
     employees.extend(AppSwitched::run());
     employees.extend(ShellBag::run());
+    employees.extend(SRUM::run());
 
     employees
 }

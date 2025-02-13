@@ -1,3 +1,4 @@
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::{
     ffi::OsString,
     io::{Bytes, Read},
@@ -8,6 +9,7 @@ use windows_registry::{Type, CURRENT_USER, LOCAL_MACHINE};
 
 use crate::{
     shellbag::shellbag::collect_shell_bag,
+    srum::provider::try_read_srum,
     utils::{get_current_username_in_sid, known_folder_in_path, rot13, string_to_pcwstr},
 };
 
@@ -21,6 +23,25 @@ pub struct AppCompatCache {}
 pub struct Bam {}
 pub struct AppSwitched {}
 pub struct ShellBag {}
+pub struct SRUM {}
+
+impl MiniDatWrapper for SRUM {
+    fn new_instance(value: String) -> MiniDat {
+        MiniDat {
+            value: value,
+            id: "srum",
+        }
+    }
+}
+
+impl MiniDatEmployee<MiniDat> for SRUM {
+    fn run() -> Vec<MiniDat> {
+        try_read_srum()
+            .par_iter()
+            .map(|item| SRUM::new_instance(item.to_owned()))
+            .collect()
+    }
+}
 
 impl MiniDatWrapper for SevenZip {
     fn new_instance(value: String) -> MiniDat {
@@ -463,8 +484,8 @@ pub fn replace_device_path_with_drive_letter(path: &str) -> String {
 
     if parts.len() >= 3
         && parts[0].is_empty()
-        && parts[1] == "Device"
-        && parts[2].starts_with("HarddiskVolume")
+        && parts[1].to_lowercase() == "device"
+        && parts[2].to_lowercase().starts_with("harddiskvolume")
     {
         let device_path = format!("\\{}\\{}", parts[1], parts[2]);
         if let Some(drive_letter) = get_drive_letter(&device_path) {
