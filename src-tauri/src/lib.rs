@@ -22,8 +22,7 @@ use storage::{get_all_storage, get_storage, set_storage, Storage};
 use tauri::{Emitter, Manager, WindowEvent};
 use usn_journal::{get_all_volumes, get_usn_journal_records};
 use utils::{
-    get_github_version, get_parallel_files, open_explorer, open_url,
-    run_main_window_and_close_preload,
+    create_file_and_write, get_github_version, get_parallel_files, open_explorer, open_url, run_main_window_and_close_preload
 };
 use vmdetect::is_vm;
 
@@ -109,7 +108,8 @@ pub fn run() {
             get_github_version,
             collect_strings_from_cs2,
             collect_modules_strings_from_cs2,
-            find_strings
+            find_strings,
+            create_file_and_write
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

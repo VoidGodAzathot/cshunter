@@ -1,5 +1,7 @@
 use std::{
     ffi::OsString,
+    fs::File,
+    io::Write,
     os::windows::{ffi::OsStringExt, process::CommandExt},
     path::PathBuf,
     process::Command,
@@ -316,4 +318,21 @@ pub fn filter_is_present(filter: &str, data: &str) -> bool {
     filter_words
         .par_iter()
         .any(|word| lower_data.contains(word))
+}
+
+#[tauri::command]
+pub fn create_file_and_write(path: String, data: String) -> bool {
+    match File::create(path) {
+        Ok(mut file) => {
+            return file.write_all(data.as_bytes()).is_ok();
+        }
+
+        Err(e) => {
+            if cfg!(dev) {
+                println!("{e:?}");
+            }
+        }
+    }
+
+    false
 }

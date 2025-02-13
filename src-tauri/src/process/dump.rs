@@ -211,7 +211,7 @@ pub fn dump_strings_from_process(process: Process) -> Vec<Strings> {
                             values: strings,
                         });
                         total += strings_len;
-                        global_emit("task_status_update", &format!("{} строк", total));
+                        global_emit("task_status_update", &format!("{} найдено", total));
                     }
                 }
             }
@@ -266,7 +266,7 @@ pub fn dump_modules_strings_from_process(process: Process) -> Vec<ModuleStrings>
                         dump_module_strings(process.handle, &me32, &mut module_strings);
                         if module_strings.values.len() != 0 && module_strings.address.len() != 0 {
                             total += module_strings.values.len();
-                            global_emit("task_status_update", &format!("{} строк", total));
+                            global_emit("task_status_update", &format!("{} найдено", total));
                             strings.push(module_strings);
                         }
                         if !Module32NextW(snapshot, &mut me32).is_ok() {

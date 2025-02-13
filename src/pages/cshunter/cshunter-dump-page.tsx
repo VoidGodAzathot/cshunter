@@ -18,6 +18,8 @@ import {
 } from "../../components/ui/pagination";
 import useStorage from "../../hooks/storage";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
+import { toaster, Toaster } from "../../components/ui/toaster";
 
 export default function CSHunterDumpPage() {
   const [, get, ,] = useStorage();
@@ -55,6 +57,8 @@ export default function CSHunterDumpPage() {
 
   return (
     <>
+      <Toaster />
+
       {!countModulesStrings || !countStrings ? (
         <Center gap="1" width="full" height="full" className="flex flex-col">
           <Icon
@@ -187,26 +191,58 @@ export default function CSHunterDumpPage() {
               </Box>
             </Box>
 
-            <PaginationRoot
-              count={matches.length}
-              pageSize={pageSize}
-              page={currentPage}
-              onPageChange={(s) => setCurrentPage(s.page)}
-            >
-              <HStack wrap="wrap">
-                <PaginationPrevTrigger
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                />
-                <PaginationItems />
-                <PaginationNextTrigger
-                  disabled={currentPage === totalPages}
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                />
-              </HStack>
-            </PaginationRoot>
+            <Flex alignItems="center" justify="space-between">
+              <PaginationRoot
+                count={matches.length}
+                pageSize={pageSize}
+                page={currentPage}
+                onPageChange={(s) => setCurrentPage(s.page)}
+              >
+                <HStack wrap="wrap">
+                  <PaginationPrevTrigger
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  />
+                  <PaginationItems />
+                  <PaginationNextTrigger
+                    disabled={currentPage === totalPages}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                  />
+                </HStack>
+              </PaginationRoot>
+
+              {matches.length == 0 ? (
+                <></>
+              ) : (
+                <Button
+                  onClick={async () => {
+                    const file = await open({
+                      multiple: false,
+                      filters: [{ name: "", extensions: ["txt"] }],
+                      directory: false,
+                    });
+                    if (file) {
+                      let result: boolean = await invoke(
+                        "create_file_and_write",
+                        { path: file, data: matches.join("\n") }
+                      );
+                      toaster.create({
+                        title: result
+                          ? "Успешно выполнено"
+                          : "Ошибка выполнения",
+                        type: result ? "success" : "error",
+                      });
+                    }
+                  }}
+                  variant="surface"
+                  borderRadius="50px"
+                >
+                  Сохранить совпадения ({matches.length})
+                </Button>
+              )}
+            </Flex>
           </Flex>
         </Flex>
       )}
