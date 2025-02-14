@@ -6,8 +6,10 @@ import { Task, Tasks } from "../../utils/tasks";
 import PreloadBoxes from "../../components/preload/preload-boxes";
 import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
+import useStorage from "../../hooks/storage";
 
 function PreloadMainPage() {
+  const [set,get,,] = useStorage();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [completedTasks, setCompletedTasks] = useState<number>(0);
   const [currentTask, setCurrentTask] = useState<Task | undefined>(undefined);
@@ -28,6 +30,10 @@ function PreloadMainPage() {
     }
 
     async function runPreload() {
+      if (await get<boolean>("loading")) {
+        return;
+      }
+      await set<boolean>("loading", true);
       for (const [i, task] of Tasks.entries()) {
         setCurrentTask(task);
         try {
@@ -39,7 +45,7 @@ function PreloadMainPage() {
           setCurrentTaskStatus("");
         }
       }
-
+      await set<boolean>("loading", false);
       setIsLoaded(true);
     }
 
