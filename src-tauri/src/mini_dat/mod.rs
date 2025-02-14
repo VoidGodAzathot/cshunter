@@ -5,6 +5,7 @@ use registry_md::{
 
 pub mod mini_dat;
 pub mod registry_md;
+pub mod srum;
 
 pub const MINI_DAT_META: [MiniDatInfo; 9] = [
     MiniDatInfo {

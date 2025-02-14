@@ -10,9 +10,10 @@ use windows::Win32::Storage::{
 
 use crate::{
     mini_dat::registry_md::replace_device_path_with_drive_letter,
-    srum::session::JetSession,
     utils::{random_name, string_to_pcwstr},
 };
+
+use super::session::JetSession;
 
 // https://github.com/libyal/esedb-kb/blob/main/documentation/System%20Resource%20Usage%20Monitor%20%28SRUM%29.asciidoc
 pub fn try_read_srum() -> Vec<String> {

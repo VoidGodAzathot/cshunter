@@ -9,11 +9,10 @@ use windows_registry::{Type, CURRENT_USER, LOCAL_MACHINE};
 
 use crate::{
     shellbag::shellbag::collect_shell_bag,
-    srum::provider::try_read_srum,
     utils::{get_current_username_in_sid, known_folder_in_path, rot13, string_to_pcwstr},
 };
 
-use super::mini_dat::{MiniDat, MiniDatEmployee, MiniDatWrapper};
+use super::{mini_dat::{MiniDat, MiniDatEmployee, MiniDatWrapper}, srum::provider::try_read_srum};
 
 pub struct SevenZip {}
 pub struct WinRar {}

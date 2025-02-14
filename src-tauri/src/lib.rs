@@ -38,7 +38,6 @@ pub mod storage;
 pub mod usn_journal;
 pub mod utils;
 pub mod vmdetect;
-pub mod srum;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

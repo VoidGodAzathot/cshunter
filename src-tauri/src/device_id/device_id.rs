@@ -1,6 +1,6 @@
 use core::arch::asm;
 use std::{
-    ffi::c_void,
+    ffi::{c_void, CStr},
     mem::zeroed,
     ptr::{addr_of_mut, null_mut},
 };
@@ -154,7 +154,7 @@ impl DeviceId {
                         let serial_number_ptr =
                             unsafe { out_buffer.as_ptr().offset(serial_number_offset as isize) };
                         let serial_number =
-                            unsafe { std::ffi::CStr::from_ptr(serial_number_ptr as *const i8) };
+                            unsafe { CStr::from_ptr(serial_number_ptr as *const i8) };
 
                         let _ = CloseHandle(handle);
 
