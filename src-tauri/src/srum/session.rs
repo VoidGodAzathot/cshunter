@@ -1,9 +1,9 @@
-use std::{env, fs, mem::zeroed, thread, time::Duration};
+use std::{env, fs, mem::zeroed};
 
 use windows::Win32::Storage::Jet::{
-    JET_bitDbReadOnly, JET_bitTermComplete, JET_errDatabaseDuplicate, JET_errSuccess,
-    JetAttachDatabaseW, JetBeginSessionW, JetCloseDatabase, JetCreateInstance2W, JetEndSession,
-    JetInit, JetOpenDatabaseW, JetTerm, JetTerm2, JET_INSTANCE, JET_SESID,
+    JET_bitDbReadOnly, JET_errSuccess, JetAttachDatabaseW, JetBeginSessionW, JetCloseDatabase,
+    JetCreateInstance2W, JetEndSession, JetInit, JetOpenDatabaseW, JetTerm, JET_INSTANCE,
+    JET_SESID,
 };
 
 use crate::utils::string_to_pcwstr;
@@ -86,59 +86,20 @@ impl JetSession {
     pub fn attach_and_open_to_db(&mut self, path: &str) -> bool {
         unsafe {
             let path_ptr = string_to_pcwstr(String::from(path)).as_ptr();
-
-            let mut attach_attempts = 0;
-            loop {
-                let attach_result = JetAttachDatabaseW(self.ses_id, path_ptr, JET_bitDbReadOnly);
-                if attach_result == JET_errSuccess || attach_result == JET_errDatabaseDuplicate {
-                    break;
-                } else {
-                    if cfg!(dev) {
-                        println!(
-                            "JetAttachDatabaseW attempt {} failed with error: {}",
-                            attach_attempts, attach_result
-                        );
-                    }
-                    thread::sleep(Duration::from_millis(500));
-                    attach_attempts += 1;
-                    if attach_attempts >= 10 {
-                        if cfg!(dev) {
-                            println!("Failed to attach database after 10 attempts");
-                        }
-                        return false;
-                    }
-                }
+            let _ = JetAttachDatabaseW(self.ses_id, path_ptr, JET_bitDbReadOnly);
+            // what? i call it with an error, but still the database opens?
+            // code: -1104? what is error?
+            let err = JetOpenDatabaseW(
+                self.ses_id,
+                path_ptr,
+                None,
+                &mut self.dbid,
+                JET_bitDbReadOnly,
+            );
+            if cfg!(dev) {
+                println!("JetOpenDatabaseW with code: {}", err);
             }
-
-            let mut open_attempts = 0;
-            loop {
-                let open_result = JetOpenDatabaseW(
-                    self.ses_id,
-                    path_ptr,
-                    None,
-                    &mut self.dbid,
-                    JET_bitDbReadOnly,
-                );
-                if open_result == JET_errSuccess {
-                    return true;
-                } else {
-                    if cfg!(dev) {
-                        println!(
-                            "JetOpenDatabaseW attempt {} failed with error: {}",
-                            open_attempts, open_result
-                        );
-                    }
-                    let _ = JetTerm2(self.instance, JET_bitTermComplete);
-                    thread::sleep(Duration::from_millis(500));
-                    open_attempts += 1;
-                    if open_attempts >= 10 {
-                        if cfg!(dev) {
-                            println!("Failed to open database after 10 attempts");
-                        }
-                        return false;
-                    }
-                }
-            }
+            return true;
         }
     }
 }
