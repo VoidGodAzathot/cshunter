@@ -1,7 +1,9 @@
 use std::{env, fs, mem::zeroed};
 
 use windows::Win32::Storage::Jet::{
-    JET_bitDbReadOnly, JET_errSuccess, JetAttachDatabaseW, JetBeginSessionW, JetCloseDatabase, JetCreateInstance2W, JetDetachDatabaseW, JetEndSession, JetInit, JetOpenDatabaseW, JetTerm, JET_INSTANCE, JET_SESID
+    JET_bitDbReadOnly, JET_errSuccess, JetAttachDatabaseW, JetBeginSessionW, JetCloseDatabase,
+    JetCreateInstance2W, JetDetachDatabaseW, JetEndSession, JetInit, JetOpenDatabaseW, JetTerm,
+    JET_INSTANCE, JET_SESID,
 };
 
 use crate::utils::string_to_pcwstr;
@@ -50,7 +52,7 @@ impl JetSession {
             let path_ptr = path_wide.as_ptr();
 
             let attach_err = JetAttachDatabaseW(self.ses_id, path_ptr, JET_bitDbReadOnly);
-            if cfg!(debug_assertions) {
+            if cfg!(dev) {
                 println!("JetAttachDatabaseW: {}", attach_err);
             }
 
@@ -61,7 +63,7 @@ impl JetSession {
                 &mut self.dbid,
                 JET_bitDbReadOnly,
             );
-            if cfg!(debug_assertions) {
+            if cfg!(dev) {
                 println!("JetOpenDatabaseW: {}", err);
             }
 
@@ -82,26 +84,20 @@ impl JetSession {
                 let path_wide = string_to_pcwstr(path.clone());
                 let path_ptr = path_wide.as_ptr();
                 if JetDetachDatabaseW(self.ses_id, Some(path_ptr)) != JET_errSuccess {
-                    if cfg!(debug_assertions) {
-                        println!(
-                            "detach db is failed: {:?}",
-                            self.instance
-                        );
+                    if cfg!(dev) {
+                        println!("detach db is failed: {:?}", self.instance);
                     }
                 }
             }
 
             if JetEndSession(self.ses_id, 0) != JET_errSuccess {
-                if cfg!(debug_assertions) {
-                    println!(
-                        "end session is failed: {:?}",
-                        self.instance
-                    );
+                if cfg!(dev) {
+                    println!("end session is failed: {:?}", self.instance);
                 }
             }
 
             if JetTerm(self.instance) != JET_errSuccess {
-                if cfg!(debug_assertions) {
+                if cfg!(dev) {
                     println!("terminate instance is failed: {:?}", self.instance);
                 }
             }
@@ -110,7 +106,11 @@ impl JetSession {
                 if let Ok(read_dir) = dir.read_dir() {
                     for entry in read_dir.filter_map(Result::ok) {
                         if let Some(fname) = entry.file_name().to_str() {
-                            if fname.contains("edb") {
+                            if fname.contains("edb")
+                                && (fname.ends_with(".chk")
+                                    || fname.ends_with(".log")
+                                    || fname.ends_with(".jrs"))
+                            {
                                 let _ = fs::remove_file(entry.path());
                             }
                         }

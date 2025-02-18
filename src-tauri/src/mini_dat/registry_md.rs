@@ -3,6 +3,8 @@ use std::{
     ffi::OsString,
     io::{Bytes, Read},
     os::windows::ffi::OsStringExt,
+    thread,
+    time::Duration,
 };
 use windows::Win32::Storage::FileSystem::QueryDosDeviceW;
 use windows_registry::{Type, CURRENT_USER, LOCAL_MACHINE};
@@ -12,7 +14,10 @@ use crate::{
     utils::{get_current_username_in_sid, known_folder_in_path, rot13, string_to_pcwstr},
 };
 
-use super::{mini_dat::{MiniDat, MiniDatEmployee, MiniDatWrapper}, srum::provider::try_read_srum};
+use super::{
+    mini_dat::{MiniDat, MiniDatEmployee, MiniDatWrapper},
+    srum::provider::try_read_srum,
+};
 
 pub struct SevenZip {}
 pub struct WinRar {}
@@ -33,12 +38,24 @@ impl MiniDatWrapper for SRUM {
     }
 }
 
+#[allow(unused_assignments)]
 impl MiniDatEmployee<MiniDat> for SRUM {
     fn run() -> Vec<MiniDat> {
-        try_read_srum()
-            .par_iter()
-            .map(|item| SRUM::new_instance(item.to_owned()))
-            .collect()
+        loop {
+            let mut counter = 1;
+            if counter >= 500 {
+                return vec![];
+            }
+            let data = try_read_srum();
+            if data.len() != 0 {
+                return data
+                    .par_iter()
+                    .map(|item| SRUM::new_instance(item.to_owned()))
+                    .collect();
+            }
+            counter += 1;
+            thread::sleep(Duration::from_millis(500));
+        }
     }
 }
 

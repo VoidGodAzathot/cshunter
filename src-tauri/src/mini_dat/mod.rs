@@ -73,7 +73,7 @@ pub const MINI_DAT_META: [MiniDatInfo; 9] = [
     }
 ];
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn collect_mini_dat() -> Vec<MiniDat> {
     let mut employees: Vec<MiniDat> = vec![];
 
