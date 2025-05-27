@@ -1,7 +1,6 @@
 import useStorage from "../hooks/storage";
 import { GITHUB_PACKAGE_URL } from "./consts";
 import {
-  AnalyzeContext,
   Browser,
   CacheDat,
   DownloadDat,
@@ -17,6 +16,7 @@ import { invoke } from "@tauri-apps/api/core";
 export type Task = {
   name: string;
   id: string;
+  cancellable: boolean;
   worker: () => Promise<void>;
 };
 
@@ -24,19 +24,11 @@ export const Tasks: Task[] = [
   {
     name: "Подготовка к запуску",
     id: "prepare",
+    cancellable: false,
     worker: async () => {
       const [set, ,] = useStorage();
       const volumes: Volume[] = await invoke("get_all_volumes");
       await set<Volume[]>("volumes", volumes);
-      let files: string[] = [];
-      for (var i = 0; i < volumes.length; i++) {
-        const volume = volumes[i];
-        const volume_files: string[] = await invoke("get_parallel_files", {
-          startPath: volume.path,
-        });
-        files = [...files, ...volume_files];
-      }
-      await set<string[]>("all_files", files);
       const vmd_verdict: boolean = await invoke("is_vm");
       await set<boolean>("vmd_verdict", vmd_verdict);
       const github_version: string = await invoke("get_github_version", {
@@ -48,42 +40,49 @@ export const Tasks: Task[] = [
   {
     name: "Получение журнала файлов",
     id: "get_usn_journal_records",
+    cancellable: false,
     worker: async () => {
       const [set, get] = useStorage();
       const volumes = await get<Volume[]>("volumes");
-      let response: FileRecord[] = [];
-      for (var i = 0; i < volumes.length; i++) {
-        const volume = volumes[i];
-        let records: FileRecord[] = await invoke("get_usn_journal_records", {
-          volume: volume,
-          reason: -1,
-        });
-        response = [...response, ...records];
+      if (volumes) {
+        let response: FileRecord[] = [];
+        for (var i = 0; i < volumes.length; i++) {
+          const volume = volumes[i];
+          let records: FileRecord[] = await invoke("get_usn_journal_records", {
+            volume: volume,
+            reason: -1,
+          });
+          response = [...response, ...records];
+        }
+        set<FileRecord[]>("journal_all", response);
       }
-      set<FileRecord[]>("journal_all", response);
     },
   },
   {
     name: "Получение журнала удаленных файлов",
     id: "get_usn_journal_deleted_records",
+    cancellable: false,
     worker: async () => {
       const [set, get] = useStorage();
       const volumes = await get<Volume[]>("volumes");
-      let response: FileRecord[] = [];
-      for (var i = 0; i < volumes.length; i++) {
-        const volume = volumes[i];
-        let records: FileRecord[] = await invoke("get_usn_journal_records", {
-          volume: volume,
-          reason: 512,
-        });
-        response = [...response, ...records];
+      if (volumes) {
+        let response: FileRecord[] = [];
+        for (var i = 0; i < volumes.length; i++) {
+          const volume = volumes[i];
+          let records: FileRecord[] = await invoke("get_usn_journal_records", {
+            volume: volume,
+            reason: 512,
+          });
+          response = [...response, ...records];
+        }
+        await set<FileRecord[]>("journal_removes", response);
       }
-      await set<FileRecord[]>("journal_removes", response);
     },
   },
   {
     name: "Получение истории steam аккаунтов",
     id: "get_steam_accounts",
+    cancellable: false,
     worker: async () => {
       const [set, ,] = useStorage();
       const accounts: SteamAccount[] = await invoke(
@@ -97,6 +96,7 @@ export const Tasks: Task[] = [
   {
     name: "Получение данных браузеров",
     id: "get_browsers_dat",
+    cancellable: false,
     worker: async () => {
       const [set, ,] = useStorage();
       const browsers: Browser[] = await invoke("get_supported_browsers");
@@ -130,20 +130,9 @@ export const Tasks: Task[] = [
     },
   },
   {
-    name: "Снапшот файлов системы",
-    id: "snapshot_files_system",
-    worker: async () => {
-      const [set, get] = useStorage();
-      const all_files = await get<string[]>("all_files");
-      const context: AnalyzeContext = await invoke("generate_context", {
-        files: all_files,
-      });
-      await set<AnalyzeContext>("analyzer_context", context);
-    },
-  },
-  {
     name: "Получение данных о использовании",
     id: "collect_mini_dat",
+    cancellable: false,
     worker: async () => {
       const [set, ,] = useStorage();
       const mini_dat: MiniDat[] = await invoke("collect_mini_dat");
@@ -155,6 +144,7 @@ export const Tasks: Task[] = [
   {
     name: "Дамп строк модулей процесса игры",
     id: "create_dump_modules_strings",
+    cancellable: false,
     worker: async () => {
       await invoke("collect_modules_strings_from_cs2");
     },
@@ -162,6 +152,7 @@ export const Tasks: Task[] = [
   {
     name: "Дамп строк процесса игры",
     id: "create_dump_strings",
+    cancellable: false,
     worker: async () => {
       await invoke("collect_strings_from_cs2");
     },
@@ -169,6 +160,7 @@ export const Tasks: Task[] = [
   {
     name: "Идентификация устройства",
     id: "get_device_id",
+    cancellable: false,
     worker: async () => {
       const [set, ,] = useStorage();
       const device_id: string = await invoke("get_device_id");

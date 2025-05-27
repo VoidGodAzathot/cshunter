@@ -15,7 +15,7 @@ use crate::utils::string_to_pcwstr;
 
 use super::usn_journal::SafeHandle;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Flag {
     SYSTEM,
     NTFS,

@@ -58,9 +58,9 @@ export default function CSHunterAnalyzerPage() {
 
   useEffect(() => {
     async function setup() {
-      const context: AnalyzeContext = await get<AnalyzeContext>(
+      const context: AnalyzeContext = (await get<AnalyzeContext>(
         "analyzer_context"
-      );
+      )) ?? { items: [] };
       setSysContext(context);
       setIsLoading(false);
     }

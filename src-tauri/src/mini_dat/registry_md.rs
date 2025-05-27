@@ -1,7 +1,10 @@
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::{
     ffi::OsString,
     io::{Bytes, Read},
     os::windows::ffi::OsStringExt,
+    thread,
+    time::Duration,
 };
 use windows::Win32::Storage::FileSystem::QueryDosDeviceW;
 use windows_registry::{Type, CURRENT_USER, LOCAL_MACHINE};
@@ -11,7 +14,10 @@ use crate::{
     utils::{get_current_username_in_sid, known_folder_in_path, rot13, string_to_pcwstr},
 };
 
-use super::mini_dat::{MiniDat, MiniDatEmployee, MiniDatWrapper};
+use super::{
+    mini_dat::{MiniDat, MiniDatEmployee, MiniDatWrapper},
+    srum::provider::try_read_srum,
+};
 
 pub struct SevenZip {}
 pub struct WinRar {}
@@ -21,6 +27,37 @@ pub struct AppCompatCache {}
 pub struct Bam {}
 pub struct AppSwitched {}
 pub struct ShellBag {}
+pub struct SRUM {}
+
+impl MiniDatWrapper for SRUM {
+    fn new_instance(value: String) -> MiniDat {
+        MiniDat {
+            value: value,
+            id: "srum",
+        }
+    }
+}
+
+#[allow(unused_assignments)]
+impl MiniDatEmployee<MiniDat> for SRUM {
+    fn run() -> Vec<MiniDat> {
+        loop {
+            let mut counter = 1;
+            if counter >= 500 {
+                return vec![];
+            }
+            let data = try_read_srum();
+            if data.len() != 0 {
+                return data
+                    .par_iter()
+                    .map(|item| SRUM::new_instance(item.to_owned()))
+                    .collect();
+            }
+            counter += 1;
+            thread::sleep(Duration::from_millis(500));
+        }
+    }
+}
 
 impl MiniDatWrapper for SevenZip {
     fn new_instance(value: String) -> MiniDat {
@@ -463,8 +500,8 @@ pub fn replace_device_path_with_drive_letter(path: &str) -> String {
 
     if parts.len() >= 3
         && parts[0].is_empty()
-        && parts[1] == "Device"
-        && parts[2].starts_with("HarddiskVolume")
+        && parts[1].to_lowercase() == "device"
+        && parts[2].to_lowercase().starts_with("harddiskvolume")
     {
         let device_path = format!("\\{}\\{}", parts[1], parts[2]);
         if let Some(drive_letter) = get_drive_letter(&device_path) {

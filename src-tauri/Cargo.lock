@@ -776,11 +776,13 @@ dependencies = [
 
 [[package]]
 name = "cshunter"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
+ "base64 0.22.1",
  "chrono",
  "crc32fast",
  "dashmap",
+ "flate2",
  "hex",
  "jwalk",
  "mac_address",

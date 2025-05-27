@@ -77,9 +77,9 @@ export default function CSHunterBrowsersPage() {
     async function fetchBrowserData() {
       const download_dat: DownloadDat[] = await get<DownloadDat[]>(
         "browsers_download_dat"
-      );
-      const visit_dat: VisitDat[] = await get<VisitDat[]>("browsers_visit_dat");
-      const cache_dat: CacheDat[] = await get<CacheDat[]>("browsers_cache_dat");
+      ) ?? [];
+      const visit_dat: VisitDat[] = await get<VisitDat[]>("browsers_visit_dat") ?? [];
+      const cache_dat: CacheDat[] = await get<CacheDat[]>("browsers_cache_dat") ?? [];
       const _browsers: Browser[] = await invoke("get_supported_browsers");
       setBrowsersData({
         cache: cache_dat,

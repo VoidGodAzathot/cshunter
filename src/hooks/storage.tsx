@@ -4,7 +4,7 @@ import { StorageUpdate } from "../utils/types";
 
 export default function useStorage(): [
   <T>(name: string, value: T) => Promise<void>,
-  <T>(name: string) => Promise<T>,
+  <T>(name: string) => Promise<T | null>,
   () => Promise<Map<string, any>>,
   (callback?: (name: string) => Promise<void>) => Promise<() => void>
 ] {
@@ -12,7 +12,7 @@ export default function useStorage(): [
     await invoke("set_storage", { name, value: JSON.stringify(value) });
   }
 
-  async function get<T>(name: string): Promise<T> {
+  async function get<T>(name: string): Promise<T | null> {
     const result = await invoke("get_storage", { name });
     return result ? JSON.parse(result.toString()) : null;
   }

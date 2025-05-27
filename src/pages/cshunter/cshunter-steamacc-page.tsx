@@ -29,8 +29,8 @@ export default function CSHunterSteamAccPage() {
     setIsLoading(true);
 
     async function setup() {
-      const accs = await get<SteamAccount[]>("steam_accounts");
-      const cache = await get<string[]>("steam_avatar_cache");
+      const accs = await get<SteamAccount[]>("steam_accounts") ?? [];
+      const cache = await get<string[]>("steam_avatar_cache") ?? [];
       let response: WrappedSteamAccount[] = [];
 
       for (const [_, acc] of accs.entries()) {

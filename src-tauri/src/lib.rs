@@ -17,6 +17,7 @@ use process::{
     collect_modules_strings_from_cs2, collect_strings_from_cs2, find_strings,
     process::enable_debug_privilege,
 };
+use restore::{export::export_all_data, import::import_all_data};
 use steam::{get_steam_accounts_history, get_steam_avatar_cache, is_vac_present};
 use storage::{get_all_storage, get_storage, set_storage, Storage};
 use tauri::{Emitter, Manager, WindowEvent};
@@ -26,6 +27,7 @@ use utils::{
 };
 use vmdetect::is_vm;
 
+pub mod restore;
 pub mod analyzer;
 pub mod browser;
 pub mod device_id;
@@ -109,7 +111,9 @@ pub fn run() {
             collect_strings_from_cs2,
             collect_modules_strings_from_cs2,
             find_strings,
-            create_file_and_write
+            create_file_and_write,
+            export_all_data,
+            import_all_data
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

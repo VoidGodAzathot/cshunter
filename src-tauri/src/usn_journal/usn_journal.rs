@@ -32,7 +32,7 @@ unsafe impl Sync for SafeHandle {}
 
 use super::{
     usn_record::{FileIdentifier, FileRecord, UsnRecord, Version},
-    volume::Volume,
+    volume::{Flag, Volume},
 };
 
 pub struct UsnJournal {
@@ -88,6 +88,10 @@ impl UsnJournal {
         };
 
         if self.volume_handle.is_none() || self.volume_handle.unwrap().0.is_invalid() {
+            return false;
+        }
+
+        if !self.volume.flags.contains(&Flag::NTFS) {
             return false;
         }
 
