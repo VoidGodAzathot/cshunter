@@ -63,7 +63,7 @@ export default function CSHunterMiniDatPage() {
   useEffect(() => {
     async function setup() {
       setIsLoading(true);
-      const mini_dat = await get<MiniDat[]>("mini_dat");
+      const mini_dat = await get<MiniDat[]>("mini_dat") ?? [];
       let map = new Map<MiniDatKey, string[]>();
       for (const [_, dat] of mini_dat.entries()) {
         const _finded = Array.from(map.keys()).filter((k) => k.id === dat.id);

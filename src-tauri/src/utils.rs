@@ -5,9 +5,7 @@ use std::{
     os::windows::{ffi::OsStringExt, process::CommandExt},
     path::PathBuf,
     process::Command,
-    ptr::{addr_of_mut, null_mut},
-    thread,
-    time::Duration,
+    ptr::{addr_of_mut, null_mut}
 };
 
 use jwalk::WalkDir;
@@ -107,21 +105,18 @@ pub fn open_url(url: String) {
 
 #[tauri::command]
 pub fn run_main_window_and_close_preload(app: AppHandle) {
-    thread::spawn(move || {
-        let preload_window = app.get_webview_window("main");
-        if preload_window.is_none() {
-            return;
-        }
-        let cshunter_window = app.get_webview_window("cshunter");
-        if cshunter_window.is_none() {
-            return;
-        }
-        let _ = preload_window.unwrap().hide();
-        let cshunter_window = cshunter_window.unwrap();
-        let _ = cshunter_window.eval("window.location.reload()");
-        thread::sleep(Duration::from_millis(1000));
-        let _ = cshunter_window.show();
-    });
+    let preload_window = app.get_webview_window("main");
+    if preload_window.is_none() {
+        return;
+    }
+    let cshunter_window = app.get_webview_window("cshunter");
+    if cshunter_window.is_none() {
+        return;
+    }
+    let _ = preload_window.unwrap().hide();
+    let cshunter_window = cshunter_window.unwrap();
+    let _ = cshunter_window.eval("window.location.reload()");
+    let _ = cshunter_window.show();
 }
 
 pub fn get_known_folder_path(rfid: *const GUID) -> String {

@@ -47,8 +47,8 @@ export default function CSHunterDumpPage() {
   useEffect(() => {
     async function setup() {
       setIsLoading(true);
-      setCountModulesStrings(await get<number>("cs2_modules_strings_len"));
-      setCountStrings(await get<number>("cs2_strings_len"));
+      setCountModulesStrings(await get<number>("cs2_modules_strings_len") ?? 0);
+      setCountStrings(await get<number>("cs2_strings_len") ?? 0);
       setIsLoading(false);
     }
 

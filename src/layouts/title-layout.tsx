@@ -40,7 +40,7 @@ function TitleLayout({ children }: { children: JSX.Element }) {
   useEffect(() => {
     async function setup() {
       const localVersion: string = await getVersion();
-      const githubVersion: string = await get<string>("github_version");
+      const githubVersion: string = await get<string>("github_version") ?? "undefined";
       const is_vm = await get<boolean>("vmd_verdict");
 
       if (is_vm) {

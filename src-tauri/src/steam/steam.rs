@@ -171,24 +171,24 @@ impl Steam {
                                                 account_name: val
                                                     .1
                                                     .get("AccountName")
-                                                    .unwrap()
+                                                    .unwrap_or(&String::from("undefined"))
                                                     .to_string(),
                                                 persona_name: val
                                                     .1
                                                     .get("PersonaName")
-                                                    .unwrap()
+                                                    .unwrap_or(&String::from("undefined"))
                                                     .to_string(),
                                                 most_recent: val
                                                     .1
                                                     .get("MostRecent")
-                                                    .unwrap()
+                                                    .unwrap_or(&String::from("undefined"))
                                                     .to_string()
                                                     .parse()
                                                     .unwrap_or(0),
                                                 timestamp: val
                                                     .1
                                                     .get("Timestamp")
-                                                    .unwrap()
+                                                    .unwrap_or(&String::from("undefined"))
                                                     .to_string()
                                                     .parse()
                                                     .unwrap_or(0),

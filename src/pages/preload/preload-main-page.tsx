@@ -1,16 +1,27 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
-import { Card, Container, Flex, ProgressRoot, Text } from "@chakra-ui/react";
+import {
+  Button,
+  Card,
+  Container,
+  Flex,
+  ProgressRoot,
+  Text,
+} from "@chakra-ui/react";
 import { ProgressBar, ProgressLabel } from "../../components/ui/progress";
 import { Task, Tasks } from "../../utils/tasks";
 import PreloadBoxes from "../../components/preload/preload-boxes";
 import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
 import useStorage from "../../hooks/storage";
+import { Icon } from "@iconify/react/dist/iconify.js";
+import { open } from "@tauri-apps/plugin-dialog";
+import { toaster } from "../../components/ui/toaster";
 
 function PreloadMainPage() {
-  const [set,get,,] = useStorage();
+  const [set, get, ,] = useStorage();
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [completedTasks, setCompletedTasks] = useState<number>(0);
   const [currentTask, setCurrentTask] = useState<Task | undefined>(undefined);
   const [currentTaskStatus, setCurrentTaskStatus] = useState<string>("");
@@ -49,16 +60,18 @@ function PreloadMainPage() {
       setIsLoaded(true);
     }
 
-    setup();
-    fetchVersion();
-    runPreload();
-  }, []);
+    if (loading) {
+      setup();
+      fetchVersion();
+      runPreload();
+    }
+  }, [loading]);
+
+  async function runCSHunter() {
+    await invoke("run_main_window_and_close_preload");
+  }
 
   useEffect(() => {
-    async function runCSHunter() {
-      await invoke("run_main_window_and_close_preload");
-    }
-
     if (isLoaded) {
       runCSHunter();
     }
@@ -73,67 +86,152 @@ function PreloadMainPage() {
         paddingTop={0}
         className="font-inter select-none flex justify-center items-center"
       >
-        <Card.Root
-          borderRadius={20}
-          borderWidth="1px"
-          background="#18181B"
-          variant="subtle"
-          height="full"
-          width="full"
-        >
-          <Card.Body>
-            <Card.Title
-              spaceX={5}
-              paddingBottom={5}
-              className="items-center flex"
-            >
-              <PreloadBoxes />
-
-              <div>
-                <Text fontWeight="normal" fontSize={18}>
-                  cshunter
-                </Text>
-
-                <Text color="gray" fontWeight="normal" fontSize={14}>
-                  {version ? version : "..."}
-                </Text>
-              </div>
-            </Card.Title>
-          </Card.Body>
-          <Card.Footer>
-            <ProgressRoot
-              size="lg"
-              striped
-              animated
-              spaceY={1}
-              className="flex-rows"
-              value={completedTasks}
-              max={Tasks.length}
+        {loading ? (
+          <>
+            <Card.Root
+              borderRadius={20}
+              borderWidth="1px"
+              background="#18181B"
               variant="subtle"
-              w="full"
-              maxW="full"
+              height="full"
+              width="full"
             >
-              <ProgressLabel>
-                <Flex direction="column">
-                  <Text color={"white"} fontSize={12}>
-                    {currentTask ? currentTask.name : "Ожидание"}
-                  </Text>
-
-                  <Text
-                    minWidth="min-content"
-                    whiteSpace="normal"
-                    wordBreak="break-word"
-                    color={"gray"}
-                    fontSize={12}
+              <Card.Body>
+                <Card.Title
+                  spaceX={5}
+                  paddingBottom={5}
+                  className="items-center flex"
+                >
+                  <Flex
+                    width="full"
+                    alignItems="center"
+                    justify="space-between"
                   >
-                    {currentTaskStatus.length > 0 ? currentTaskStatus : ""}
-                  </Text>
-                </Flex>
-              </ProgressLabel>
-              <ProgressBar borderRadius={10} />
-            </ProgressRoot>
-          </Card.Footer>
-        </Card.Root>
+                    <Flex alignItems="center" gap="20px">
+                      <PreloadBoxes />
+
+                      <div>
+                        <Text fontWeight="normal" fontSize={18}>
+                          cshunter
+                        </Text>
+
+                        <Text color="gray" fontWeight="normal" fontSize={14}>
+                          {version ? version : "..."}
+                        </Text>
+                      </div>
+                    </Flex>
+                  </Flex>
+                </Card.Title>
+              </Card.Body>
+              <Card.Footer>
+                <ProgressRoot
+                  size="lg"
+                  striped
+                  animated
+                  spaceY={1}
+                  className="flex-rows"
+                  value={completedTasks}
+                  max={Tasks.length}
+                  variant="subtle"
+                  w="full"
+                  maxW="full"
+                >
+                  <ProgressLabel>
+                    <Flex direction="column">
+                      <Text color={"white"} fontSize={12}>
+                        {currentTask ? currentTask.name : "Ожидание"}
+                      </Text>
+
+                      <Text
+                        minWidth="min-content"
+                        whiteSpace="normal"
+                        wordBreak="break-word"
+                        color={"gray"}
+                        fontSize={12}
+                      >
+                        {currentTaskStatus.length > 0 ? currentTaskStatus : ""}
+                      </Text>
+                    </Flex>
+                  </ProgressLabel>
+
+                  <ProgressBar borderRadius={10} />
+                </ProgressRoot>
+              </Card.Footer>
+            </Card.Root>
+          </>
+        ) : (
+          <>
+            <Flex
+              paddingTop="50px"
+              height="full"
+              justify="space-between"
+              width="full"
+              alignItems="center"
+              direction="column"
+              gap="20px"
+            >
+              <Flex
+                width="full"
+                alignItems="center"
+                direction="column"
+                gap="20px"
+              >
+                <Button
+                  onClick={() => {
+                    setLoading(true);
+                  }}
+                  variant="subtle"
+                  marginTop="auto"
+                  borderRadius={50}
+                  height="50px"
+                >
+                  <Icon icon="qlementine-icons:run-16"></Icon>
+                  Запустить
+                </Button>
+
+                <Button
+                  onClick={async () => {
+                    const file = await open({
+                      multiple: false,
+                      filters: [{ name: "", extensions: ["gz"] }],
+                      directory: false,
+                    });
+                    if (file) {
+                      await invoke("import_all_data", { file: file })
+                        .then(async () => {
+                          await runCSHunter();
+                        })
+                        .catch((e) => {
+                          toaster.create({
+                            title: "Ошибка загрузки",
+                            description: e,
+                            type: "error",
+                          });
+                        });
+                    }
+                  }}
+                  variant="subtle"
+                  marginTop="auto"
+                  borderRadius={50}
+                  height="50px"
+                >
+                  <Icon icon="material-symbols:upload-rounded"></Icon>
+                  Импортировать
+                </Button>
+              </Flex>
+
+              <Text
+                minWidth="min-content"
+                whiteSpace="normal"
+                wordBreak="break-word"
+                color={"gray"}
+                fontSize={12}
+              >
+                non commercial & open source
+              </Text>
+            </Flex>
+          </>
+        )}
       </Container>
     </>
   );

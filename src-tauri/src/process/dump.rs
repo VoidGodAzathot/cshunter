@@ -5,129 +5,21 @@ use windows::Win32::{
     Foundation::{CloseHandle, HANDLE},
     System::{
         Diagnostics::{
-            Debug::ReadProcessMemory,
+            Debug::{ReadProcessMemory, IMAGE_FILE_HEADER, IMAGE_NT_HEADERS64, IMAGE_SECTION_HEADER},
             ToolHelp::{
                 CreateToolhelp32Snapshot, Module32FirstW, Module32NextW, MODULEENTRY32W,
                 TH32CS_SNAPMODULE, TH32CS_SNAPMODULE32,
             },
         },
         Memory::{
-            VirtualQueryEx, MEMORY_BASIC_INFORMATION, MEM_COMMIT, PAGE_EXECUTE_READ,
-            PAGE_EXECUTE_READWRITE, PAGE_READONLY, PAGE_READWRITE,
-        },
+            VirtualQueryEx, MEMORY_BASIC_INFORMATION64, MEM_COMMIT, PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_READONLY, PAGE_READWRITE
+        }, SystemServices::IMAGE_DOS_HEADER,
     },
 };
 
 use crate::emitter::global_emit;
 
 use super::process::Process;
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-#[allow(non_snake_case, non_camel_case_types)]
-struct IMAGE_DOS_HEADER {
-    e_magic: u16,
-    e_cblp: u16,
-    e_cp: u16,
-    e_crlc: u16,
-    e_cparhdr: u16,
-    e_minalloc: u16,
-    e_maxalloc: u16,
-    e_ss: u16,
-    e_sp: u16,
-    e_csum: u16,
-    e_ip: u16,
-    e_cs: u16,
-    e_lfarlc: u16,
-    e_ovno: u16,
-    e_res: [u16; 4],
-    e_oemid: u16,
-    e_oeminfo: u16,
-    e_res2: [u16; 10],
-    e_lfanew: i32,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-#[allow(non_snake_case, non_camel_case_types)]
-struct IMAGE_FILE_HEADER {
-    Machine: u16,
-    NumberOfSections: u16,
-    TimeDateStamp: u32,
-    PointerToSymbolTable: u32,
-    NumberOfSymbols: u32,
-    SizeOfOptionalHeader: u16,
-    Characteristics: u16,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-#[allow(non_snake_case, non_camel_case_types)]
-struct IMAGE_DATA_DIRECTORY {
-    VirtualAddress: u32,
-    Size: u32,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-#[allow(non_snake_case, non_camel_case_types)]
-struct IMAGE_OPTIONAL_HEADER64 {
-    Magic: u16,
-    MajorLinkerVersion: u8,
-    MinorLinkerVersion: u8,
-    SizeOfCode: u32,
-    SizeOfInitializedData: u32,
-    SizeOfUninitializedData: u32,
-    AddressOfEntryPoint: u32,
-    BaseOfCode: u32,
-    ImageBase: u64,
-    SectionAlignment: u32,
-    FileAlignment: u32,
-    MajorOperatingSystemVersion: u16,
-    MinorOperatingSystemVersion: u16,
-    MajorImageVersion: u16,
-    MinorImageVersion: u16,
-    MajorSubsystemVersion: u16,
-    MinorSubsystemVersion: u16,
-    Win32VersionValue: u32,
-    SizeOfImage: u32,
-    SizeOfHeaders: u32,
-    CheckSum: u32,
-    Subsystem: u16,
-    DllCharacteristics: u16,
-    SizeOfStackReserve: u64,
-    SizeOfStackCommit: u64,
-    SizeOfHeapReserve: u64,
-    SizeOfHeapCommit: u64,
-    LoaderFlags: u32,
-    NumberOfRvaAndSizes: u32,
-    DataDirectory: [IMAGE_DATA_DIRECTORY; 16],
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-#[allow(non_snake_case, non_camel_case_types)]
-struct IMAGE_NT_HEADERS64 {
-    Signature: u32,
-    FileHeader: IMAGE_FILE_HEADER,
-    OptionalHeader: IMAGE_OPTIONAL_HEADER64,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-#[allow(non_snake_case, non_camel_case_types)]
-struct IMAGE_SECTION_HEADER {
-    Name: [u8; 8],
-    VirtualSize: u32,
-    VirtualAddress: u32,
-    SizeOfRawData: u32,
-    PointerToRawData: u32,
-    PointerToRelocations: u32,
-    PointerToLinenumbers: u32,
-    NumberOfRelocations: u16,
-    NumberOfLinenumbers: u16,
-    Characteristics: u32,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ModuleStrings {
@@ -148,14 +40,14 @@ pub fn dump_strings_from_process(process: Process) -> Vec<Strings> {
 
     unsafe {
         let mut address = 0 as *const c_void;
-        let mut mbi = MEMORY_BASIC_INFORMATION::default();
+        let mut mbi = MEMORY_BASIC_INFORMATION64::default();
 
         while VirtualQueryEx(
             process.handle,
             Some(address),
-            &mut mbi,
-            size_of::<MEMORY_BASIC_INFORMATION>(),
-        ) == size_of::<MEMORY_BASIC_INFORMATION>()
+            &mut mbi as *const _ as _,
+            size_of::<MEMORY_BASIC_INFORMATION64>(),
+        ) == size_of::<MEMORY_BASIC_INFORMATION64>()
         {
             if mbi.State == MEM_COMMIT
                 && (mbi.Protect.0 == PAGE_READONLY.0
@@ -166,14 +58,14 @@ pub fn dump_strings_from_process(process: Process) -> Vec<Strings> {
                 let region_size = mbi.RegionSize;
                 let base_addr = mbi.BaseAddress;
 
-                let mut buffer = vec![0u8; region_size];
+                let mut buffer = vec![0u8; region_size.try_into().unwrap()];
                 let mut bytes_read: usize = 0;
 
                 if ReadProcessMemory(
                     process.handle,
-                    base_addr,
+                    base_addr as *const _,
                     buffer.as_mut_ptr() as *mut c_void,
-                    region_size,
+                    region_size as usize,
                     Some(&mut bytes_read),
                 )
                 .is_ok()
@@ -216,7 +108,7 @@ pub fn dump_strings_from_process(process: Process) -> Vec<Strings> {
                 }
             }
 
-            address = ((mbi.BaseAddress as usize) + mbi.RegionSize) as *const c_void;
+            address = ((mbi.BaseAddress as usize) + mbi.RegionSize as usize) as *const c_void;
         }
     }
 
@@ -373,7 +265,7 @@ unsafe fn dump_module_strings(
                 process_handle,
                 me32.modBaseAddr,
                 section.VirtualAddress,
-                section.VirtualSize,
+                section.Misc.VirtualSize,
             );
         }
     }
