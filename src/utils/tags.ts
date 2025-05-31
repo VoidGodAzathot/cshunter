@@ -13,11 +13,11 @@ export const Tags: Tag[] = [
     color: "red",
   },
   {
-    msg: "bad version",
-    desc: "Вы используете неверную версию программы.",
-    id: "no_last_version",
-    color: "blue",
-  }
+    msg: "import mode",
+    desc: "Текущие данные импортированы",
+    id: "imported",
+    color: "green",
+  },
 ];
 
 export function tryApplyTag(arr: Tag[], id: string): Tag[] {

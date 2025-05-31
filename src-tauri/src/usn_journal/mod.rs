@@ -17,10 +17,10 @@ pub fn get_all_volumes() -> Vec<Volume> {
 pub fn get_usn_journal_records(volume: Volume, reason: i32) -> Vec<FileRecord> {
     let mut journal = UsnJournal::new(volume);
 
-    global_emit("task_status_update", "initialization");
+    global_emit("task_status_update", "инициализация");
 
     if journal.init() {
-        global_emit("task_status_update", "reading");
+        global_emit("task_status_update", "чтение");
 
         let records = if reason >= 0 {
             journal.read(reason as u32)

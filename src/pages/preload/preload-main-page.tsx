@@ -200,6 +200,7 @@ function PreloadMainPage() {
                       await invoke("import_all_data", { file: file })
                         .then(async () => {
                           await runCSHunter();
+                          await set<boolean>("is_imported", true);
                         })
                         .catch((e) => {
                           toaster.create({

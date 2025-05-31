@@ -39,16 +39,15 @@ function TitleLayout({ children }: { children: JSX.Element }) {
 
   useEffect(() => {
     async function setup() {
-      const localVersion: string = await getVersion();
-      const githubVersion: string = await get<string>("github_version") ?? "undefined";
       const is_vm = await get<boolean>("vmd_verdict");
+      const is_imported = await get<boolean>("is_imported");
 
       if (is_vm) {
         setTags((bef) => tryApplyTag(bef, "vmd_verdict"));
       }
 
-      if (githubVersion != null && githubVersion.length != 0 && localVersion !== githubVersion) {
-        setTags((bef) => tryApplyTag(bef, "no_last_version"));
+      if (is_imported) {
+        setTags((bef) => tryApplyTag(bef, "imported"));
       }
 
       setVersion(await getVersion());
